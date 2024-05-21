@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 function useSafeDispatch(dispatch) {
   const mounted = React.useRef(false);
@@ -6,10 +6,7 @@ function useSafeDispatch(dispatch) {
     mounted.current = true;
     return () => (mounted.current = false);
   }, []);
-  return React.useCallback(
-    (...args) => (mounted.current ? dispatch(...args) : void 0),
-    [dispatch]
-  );
+  return React.useCallback((...args) => (mounted.current ? dispatch(...args) : void 0), [dispatch]);
 }
 
 // Example usage:
@@ -17,11 +14,11 @@ function useSafeDispatch(dispatch) {
 // React.useEffect(() => {
 //   run(fetchPokemon(pokemonName))
 // }, [pokemonName, run])
-const defaultInitialState = { status: "idle", data: null, error: null };
+const defaultInitialState = { status: 'idle', data: null, error: null };
 function useAsync(initialState) {
   const initialStateRef = React.useRef({
     ...defaultInitialState,
-    ...initialState,
+    ...initialState
   });
   const [{ status, data, error }, setState] = React.useReducer(
     (s, a) => ({ ...s, ...a }),
@@ -31,17 +28,14 @@ function useAsync(initialState) {
   const safeSetState = useSafeDispatch(setState);
 
   const setData = React.useCallback(
-    (data) => safeSetState({ data, status: "resolved" }),
+    (data) => safeSetState({ data, status: 'resolved' }),
     [safeSetState]
   );
   const setError = React.useCallback(
-    (error) => safeSetState({ error, status: "rejected" }),
+    (error) => safeSetState({ error, status: 'rejected' }),
     [safeSetState]
   );
-  const reset = React.useCallback(
-    () => safeSetState(initialStateRef.current),
-    [safeSetState]
-  );
+  const reset = React.useCallback(() => safeSetState(initialStateRef.current), [safeSetState]);
 
   const run = React.useCallback(
     (promise) => {
@@ -50,7 +44,7 @@ function useAsync(initialState) {
           `The argument passed to useAsync().run must be a promise. Maybe a function that's passed isn't returning anything?`
         );
       }
-      safeSetState({ status: "pending" });
+      safeSetState({ status: 'pending' });
       return promise.then(
         (data) => {
           setData(data);
@@ -67,10 +61,10 @@ function useAsync(initialState) {
 
   return {
     // using the same names that react-query uses for convenience
-    isIdle: status === "idle",
-    isLoading: status === "pending",
-    isError: status === "rejected",
-    isSuccess: status === "resolved",
+    isIdle: status === 'idle',
+    isLoading: status === 'pending',
+    isError: status === 'rejected',
+    isSuccess: status === 'resolved',
 
     setData,
     setError,
@@ -78,7 +72,7 @@ function useAsync(initialState) {
     status,
     data,
     run,
-    reset,
+    reset
   };
 }
 

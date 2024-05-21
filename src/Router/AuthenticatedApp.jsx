@@ -37,7 +37,7 @@ function AppRoutes() {
     </Routes>
   );
 }
-
+// refactor the code please //
 export default function AuthenticatedApp() {
   const { user, logout } = useAuth();
   const queryClient = new QueryClient();

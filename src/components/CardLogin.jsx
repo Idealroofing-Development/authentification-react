@@ -26,11 +26,11 @@ export default function CardLogin({ handleSubmit, customClass }) {
             <form onSubmit={handleSubmit}>
               <div className=" pt-2 px-4">
                 <input
-                  id="username"
-                  name="username"
+                  id="email"
+                  name="email"
                   type="text"
                   placeholder="email@domain.com"
-                  defaultValue="eve.holt@reqres.in"
+                  // defaultValue="benton98@example.org"
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-400"
                 />
               </div>
@@ -39,7 +39,7 @@ export default function CardLogin({ handleSubmit, customClass }) {
                   id="password"
                   name="password"
                   type="password"
-                  placeholder="password1234"
+                  placeholder="Password"
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-400"
                 />
               </div>

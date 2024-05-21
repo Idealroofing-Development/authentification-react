@@ -1,19 +1,22 @@
 import React from 'react';
+import values from '@/data/values';
 
-export default function CenterLocale() {
+export default function CenterLocale({ title }) {
+  const officeValues = values[title] || {};
+
   return (
-    <div className=" w-full">
-      <div className=" bg-vert-claire ">
-        <div className="hidden lg:block text-center text-xl font-bold">head office</div>
-        <div class="grid grid-cols-2 text-sm lg:text-lg lg:gap-3 px-4 pb-2">
-          <div>1418 Michael Street</div>
-          <div className="pl-6">(613) 746-3206</div>
-          <div>Ottawa</div>
-          <div className="pl-6">1-800-267-0860</div>
-          <div>ON</div>
-          <div className="pl-6">(613) 746-0445</div>
-          <div>K1B 3R2</div>
-          <div className="pl-6">sales@idealroofing.ca</div>
+    <div className=" w-full h-full">
+      <div className=" bg-vert-claire h-full ">
+        <div className="hidden lg:block text-center text-xl font-bold">{title}</div>
+        <div className="grid grid-cols-2 text-sm lg:text-lg lg:gap-3 px-4 ">
+          <div>{officeValues.address}</div>
+          <div className="pl-6">{officeValues.phone}</div>
+          <div>{officeValues.city}</div>
+          <div className="pl-6">{officeValues.tollFree}</div>
+          <div>{officeValues.province}</div>
+          <div className="pl-6">{officeValues.fax}</div>
+          <div>{officeValues.postalCode}</div>
+          <div className="pl-6">{officeValues.email}</div>
         </div>
       </div>
     </div>

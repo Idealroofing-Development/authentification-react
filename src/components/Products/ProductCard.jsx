@@ -6,7 +6,7 @@ import product1 from '../../assets/product1.jpg';
 const ProductCard = () => {
   return (
     <div className="rounded-xl flex-col sm:flex-row flex gap-4 border border-gray-200 items-start">
-      <div className='sm:shrink-0'>
+      <div className="sm:shrink-0">
         <img
           className="h-48 w-full sm:h-full sm:w-48 object-contain rounded-md"
           src={product}
@@ -27,6 +27,7 @@ const ProductCard = () => {
         <div className="flex gap-2">
           <div className="flex flex-wrap gap-2">
             <select className="bg-white rounded-lg border border-gray-300 py-1 px-2 text-sm">
+              {/* you should not use selected in React, react prevent it and it says you should use `value` or `defaultValue` */}
               <option value="" disabled selected>
                 Gauge
               </option>

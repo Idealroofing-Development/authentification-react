@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, Route, Routes, NavLink } from 'react-router-dom';
 import RedirectToLogin from '../pages/unAuthApp/RedirectToLogin.jsx';
 import Login from '../pages/unAuthApp/Login.jsx';
-import Register from '../pages/unAuthApp/Register.1.jsx';
+import Register from '../pages/unAuthApp/Register.jsx';
 import Footer from '../components/Footer.jsx';
 import PartFooter from '../core/Footer/PartFooter.jsx';
 import WrapperBackGround from '../components/WrapperBackGround.jsx';
@@ -10,7 +10,8 @@ import SocialMedia from '../components/Footer/SocialMedia.jsx';
 import LocalOffice from '../components/Footer/LocalOffice.jsx';
 import CenterLocale from '../components/Footer/CenterLocale.jsx';
 import WrapperBody from '../components/WrapperBody.jsx';
-
+import dataOffice from '@/data/dataOffice.js';
+import { useState, useEffect } from 'react';
 function AppRoutes() {
   return (
     <Routes>
@@ -22,6 +23,17 @@ function AppRoutes() {
 }
 
 function UnauthenticatedApp() {
+  const [office, setOffice] = useState(1);
+  const [title, setTitle] = useState('1');
+
+  const onchangeOffice = (number) => {
+    setOffice(number);
+  };
+
+  useEffect(() => {
+    setTitle(dataOffice(office));
+  }, [office]);
+  // dataOffice(office);
   return (
     <WrapperBackGround>
       <nav className="flex justify-center space-x-4 py-3">
@@ -61,11 +73,11 @@ function UnauthenticatedApp() {
             <SocialMedia />
           </PartFooter>
           <PartFooter width="2/6">
-            <CenterLocale />
+            <CenterLocale title={title} />
           </PartFooter>
           {/* <div className={`flex lg:h-full h-1/3 lg:w-2/6   border`}> any</div> */}
           <PartFooter width="1/6">
-            <LocalOffice />
+            <LocalOffice localOffice={office} onchangeOffice={onchangeOffice} />
           </PartFooter>
           {/* <div className={`flex lg:h-full h-1/3 lg:w-1/6   border`}> any</div> */}
         </div>

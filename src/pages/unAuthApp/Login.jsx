@@ -7,14 +7,13 @@ export default function Login() {
   const { isLoading, isError, error, run } = useAsync();
   const { login } = useAuth();
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-    const { username, password } = event.target.elements;
+    const { email, password } = event.target.elements;
     // la function run a besoin d'une promise pour passer du mode deconecter au mode connecter
-
-    run(
+    await run(
       login({
-        username: username.value,
+        email: email.value,
         password: password.value
       })
     );
@@ -23,17 +22,18 @@ export default function Login() {
 
     useEffect(() => {}, [debouncedSearchTerm]);
   }
-  if (isLoading)
+  if (isLoading) {
     return (
       <>
-        hey hey <div>kader</div>
+        <div>ici le speaner</div>
       </>
     );
+  }
   if (isError)
     return (
       <>
         {error}
-        <div>kader</div>
+        <div>error</div>
       </>
     );
   return (
@@ -41,8 +41,4 @@ export default function Login() {
       <CardLogin handleSubmit={handleSubmit} customClass="lg:justify-end justify-center " />
     </div>
   );
-}
-
-{
-  /* <input type="text" value={value} onChange={(e) => setValue(e.target.value)} /> */
 }

@@ -1,6 +1,6 @@
 // pretend this is firebase, netlify, or auth0's code.
 // you shouldn't have to implement something like this in your own app
-const localStorageKey = "__auth_provider_token__";
+const localStorageKey = '__auth_provider_token__';
 
 async function getToken() {
   // if we were a real auth provider, this is where we would make a request
@@ -16,12 +16,12 @@ function handleUserResponse(response) {
   return response;
 }
 
-function login({ username, password }) {
-  return client("login", { username, password }).then(handleUserResponse);
+function login({ email, password }) {
+  return client('login', { email, password }).then(handleUserResponse);
 }
 
-function register({ username, password }) {
-  return client("register", { username, password }).then(handleUserResponse);
+function register({ email, password }) {
+  return client('register', { email, password }).then(handleUserResponse);
 }
 
 async function logout() {
@@ -34,9 +34,9 @@ async function logout() {
 
 async function client(endpoint, data) {
   const config = {
-    method: "POST",
+    method: 'POST',
     body: JSON.stringify(data),
-    headers: { "Content-Type": "application/json" },
+    headers: { 'Content-Type': 'application/json' }
   };
 
   return window

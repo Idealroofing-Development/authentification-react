@@ -1,12 +1,12 @@
-import React from "react";
-import { QueryCache } from "@tanstack/react-query";
+import React from 'react';
+import { QueryCache } from '@tanstack/react-query';
 
-import * as auth from "../provider-auth";
+import * as auth from '../provider-auth';
 
-import FullPageErrorFallback from "../components/pageRendu/FullPageErrorFallback";
-import { useAsync } from "../utils/hooks";
-import { client } from "../utils/api-client";
-import Spiner from "../components/pageRendu/Spiner";
+import FullPageErrorFallback from '../components/pageRendu/FullPageErrorFallback';
+import { useAsync } from '../utils/hooks';
+import { client } from '../utils/api-client';
+import Spiner from '../components/pageRendu/Spiner';
 
 async function bootstrapAppData() {
   let user = null;
@@ -19,7 +19,7 @@ async function bootstrapAppData() {
 }
 
 const AuthContext = React.createContext();
-AuthContext.displayName = "AuthContext";
+AuthContext.displayName = 'AuthContext';
 
 function AuthProvider(props) {
   const {
@@ -31,7 +31,7 @@ function AuthProvider(props) {
     isError,
     isSuccess,
     run,
-    setData,
+    setData
   } = useAsync();
 
   React.useEffect(() => {
@@ -40,8 +40,8 @@ function AuthProvider(props) {
   }, [run]);
 
   const login = React.useCallback(
-    (form) => {
-      auth.login(form).then((user) => setData(user));
+    async (form) => {
+      await auth.login(form).then((user) => setData(user));
     },
     [setData]
   );
@@ -91,10 +91,7 @@ function useClient() {
   const { user } = useAuth();
   console.log({ user });
   const token = user?.token;
-  return React.useCallback(
-    (endpoint, config) => client(endpoint, { ...config, token }),
-    [token]
-  );
+  return React.useCallback((endpoint, config) => client(endpoint, { ...config, token }), [token]);
 }
 
 export { AuthProvider, useAuth, useClient, bootstrapAppData };
