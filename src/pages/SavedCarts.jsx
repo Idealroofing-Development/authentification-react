@@ -13,7 +13,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
-import { Trash } from 'lucide-react';
+import { Eye, Trash } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -23,35 +23,46 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/components/ui/dialog';
+
+import {
+    Dialog as DialogBig,
+    DialogContent as DialogContentBig,
+    DialogDescription as DialogDescriptionBig,
+    DialogFooter as DialogFooterBig,
+    DialogHeader as DialogHeaderBig,
+    DialogTitle as DialogTitleBig,
+    DialogTrigger as DialogTriggerBig
+  } from '@/components/ui/fullWdialgog';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
+import { Link } from 'react-router-dom';
+import CartLinesPopup from '@/components/Cart/CartLinesPopup';
 
-const Quotes = () => {
-  const [quotes, setQuotes] = useState(null);
-  const [loadingQuotes, setLoadingQuotes] = useState(false);
+const SavedCarts = () => {
+  const [carts, setCarts] = useState(null);
+  const [loadingCarts, setLoadingCarts] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
 
-  const {user} = useAuth()
+  const [selectedCart, setSelectedCart] = useState(null)
 
-  const deleteQuote = async (id) => {
+  const { user } = useAuth();
+
+  const deleteCart = async (id) => {
     setLoadingDelete(true);
     await axios
-      .delete(
-        `${import.meta.env.VITE_REACT_API_URL}/quote/delete/`,
-        {
-            // Correctly pass the body here
-          headers: {
-            Authorization: `Bearer ${user}`
-          },
+      .delete(`${import.meta.env.VITE_REACT_API_URL}/quote/delete/`, {
+        // Correctly pass the body here
+        headers: {
+          Authorization: `Bearer ${user}`
+        },
 
-          data: { quote_id: id },
-        }
-      )
+        data: { quote_id: id }
+      })
       .then(() => {
         setLoadingDelete(false);
         toast.success('Quote deleted');
-        setQuotes(quotes.filter((q) => q.id !== id));
+        setCarts(carts.filter((q) => q.id !== id));
         setIdToDelete(null);
       })
       .catch((e) => {
@@ -60,36 +71,35 @@ const Quotes = () => {
       });
   };
 
-  
   useEffect(() => {
-    const getQuotes = async () => {
-      setLoadingQuotes(true);
+    const getCarts = async () => {
+      setLoadingCarts(true);
       await axios
-        .get(`${import.meta.env.VITE_REACT_API_URL}/quote/all`, {
+        .get(`${import.meta.env.VITE_REACT_API_URL}/cart/saved`, {
           headers: {
             Authorization: `Bearer ${user}`
           }
         })
         .then((res) => {
-          setLoadingQuotes(false);
-          setQuotes(res.data);
+          setLoadingCarts(false);
+          setCarts(res.data);
         })
         .catch((e) => {
-          toast.error('Error getting quotes');
-          setLoadingQuotes(false);
+          toast.error('Error getting carts');
+          setLoadingCarts(false);
         });
     };
-    getQuotes();
+    getCarts();
   }, []);
   return (
     <div className="wrapper">
-      <h3 className="capitalize text-xl font-bold">My quotes</h3>
+      <h3 className="capitalize text-xl font-bold">Saved carts</h3>
 
-      {loadingQuotes ? (
+      {loadingCarts ? (
         <div className="h-full flex items-center justify-center mt-12">
           <ClipLoader
             color={'black'}
-            loading={loadingQuotes}
+            loading={loadingCarts}
             //cssOverride={override}
             size={150}
             aria-label="Loading Spinner"
@@ -101,35 +111,23 @@ const Quotes = () => {
           <Table className="whitespace-nowrap w-full">
             <TableHeader className="capitalize">
               <TableRow>
-                <TableHead>Quote Number</TableHead>
-                <TableHead>Project Name</TableHead>
-                <TableHead>Created By</TableHead>
-                <TableHead>Last Accessed</TableHead>
-                <TableHead>Customer Info</TableHead>
-                <TableHead>Creation Date</TableHead>
-                <TableHead>Lines</TableHead>
-                <TableHead>Delivery Address</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Checkout</TableHead>
+                <TableHead>Cart ID</TableHead>
+                <TableHead>Client ID</TableHead>
+                <TableHead>Lines number</TableHead>
+
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
-              {quotes?.map((quote) => (
-                <TableRow key={quote?.quote?.number}>
-                  <TableCell>{quote?.quote?.number}</TableCell>
-                  <TableCell>Test PN</TableCell>
-                  <TableCell>Macha L</TableCell>
-                  <TableCell>Macha L</TableCell>
-                  <TableCell>Contractor A</TableCell>
-                  <TableCell>2024-04-17</TableCell>
-                  <TableCell>5</TableCell>
-                  <TableCell>125 Maple St</TableCell>
-                  <TableCell>$3562.85</TableCell>
-                  <TableCell></TableCell>
-                  <TableCell>
-                    <Dialog>
+              {carts?.map((cart) => (
+                <TableRow key={cart?.id}>
+                  <TableCell>{cart?.id}</TableCell>
+                  <TableCell>{cart?.end_user_id}</TableCell>
+                  <TableCell>{cart?.lines?.length}</TableCell>
+
+                  <TableCell className="flex gap-2">
+                    {/*<Dialog>
                       <DialogTrigger onClick={() => setIdToDelete(quote?.quote?.number)}>
                         <Trash size={22} />
                       </DialogTrigger>
@@ -144,14 +142,23 @@ const Quotes = () => {
 
                         <DialogFooter>
                           <Button
-                            onClick={() => deleteQuote(idToDelete)}
+                            onClick={() => deleteCart(idToDelete)}
                             disabled={loadingDelete}
                             className="bg-red-500 text-white hover:bg-red-500/90">
                             {loadingDelete ? 'Deleting quote...' : 'Delete'}
                           </Button>
                         </DialogFooter>
                       </DialogContent>
-                    </Dialog>
+                    </Dialog>*/}
+
+                    <DialogBig>
+                      <DialogTriggerBig onClick={() => setSelectedCart(cart)}>
+                        <Eye size={22} />
+                      </DialogTriggerBig>
+                      <DialogContentBig className='max-h-[600px] overflow-auto'>
+                        <CartLinesPopup cart={cart}/>
+                      </DialogContentBig>
+                    </DialogBig>
                   </TableCell>
                 </TableRow>
               ))}
@@ -163,4 +170,4 @@ const Quotes = () => {
   );
 };
 
-export default Quotes;
+export default SavedCarts;

@@ -6,6 +6,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { useAuth } from '@/context/auth-context';
+import { useContext } from 'react';
+import { UserInfoContext } from '@/context/userInfosContext';
 
 const ProductCard2 = ({ product }) => {
   const [uniqueGauges, setUniqueGauges] = useState([]);
@@ -42,6 +45,8 @@ const ProductCard2 = ({ product }) => {
   const [lengthInch, setLengthInch] = useState('');
   const [lengthFT, setLengthFT] = useState('');
   const [lengthMM, setLengthMM] = useState('');
+
+  const {user} = useAuth()
 
   const XYValues = [
     { label: 'Laurentian 5/8"', value: '5/8' },
@@ -81,6 +86,8 @@ const ProductCard2 = ({ product }) => {
 
   const [loadingAddToCart, setLoadingAddToCart] = useState(false);
   const [unit, setUnit] = useState('IN');
+
+  const { userInfos } = useContext(UserInfoContext);
 
   const evaluateEquation = (equation) => {
     // Replace variable names in the equation with their current values
@@ -573,7 +580,8 @@ const ProductCard2 = ({ product }) => {
 
           pricing: {
             PartNum: selectedPartNum,
-            CustID: '210745',
+            //CustID: userInfos?.customer_id,
+            CustID:"210745",
             Currency: 'CAD',
             Qty: product?.product?.options_list?.QTYFT
               ? selectedLength
@@ -616,7 +624,7 @@ const ProductCard2 = ({ product }) => {
         },
         {
           headers: {
-            Authorization: 'Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75'
+            Authorization: `Bearer ${user}`
           }
         }
       )

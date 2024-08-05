@@ -15,7 +15,47 @@ export default function List() {
 
   useEffect(() => {
     setLoadingData(true);
-    const getProductsByCategory = async () => {
+    const getProductByQuery = async () => {
+      if (searchParams.get('page')) {
+        await axios
+          .post(
+            `${import.meta.env.VITE_REACT_API_URL}/products/search`,
+            {},
+            {
+              params: {
+                query: searchParams.get('query'),
+                page: searchParams.get('page')
+              }
+            }
+          )
+          .then((res) => {
+            setResult(res.data);
+            setLoadingData(false);
+          })
+          .catch((e) => {
+            setErrorData(e);
+          });
+      } else
+        await axios
+          .post(
+            `${import.meta.env.VITE_REACT_API_URL}/products/search`,
+            {},
+            {
+              params: {
+                query: searchParams.get('query')
+              }
+            }
+          )
+          .then((res) => {
+            setResult(res.data);
+            setLoadingData(false);
+          })
+          .catch((e) => {
+            setErrorData(e);
+          });
+    };
+
+    const getProductByCategory = async () => {
       if (searchParams.get('page')) {
         await axios
           .get(`${import.meta.env.VITE_REACT_API_URL}/products/category`, {
@@ -33,7 +73,7 @@ export default function List() {
           });
       } else
         await axios
-          .get(`${import.meta.env.VITE_REACT_API_URL}/products/category`, {
+          .post(`${import.meta.env.VITE_REACT_API_URL}/products/category`, {
             params: {
               category: searchParams.get('category')
             }
@@ -52,7 +92,8 @@ export default function List() {
         await axios
           .get(`${import.meta.env.VITE_REACT_API_URL}/products`, {
             params: {
-              page: searchParams.get('page')
+              page: searchParams.get('page'),
+              category: searchParams.get('category')
             }
           })
           .then((res) => {
@@ -73,8 +114,10 @@ export default function List() {
             setErrorData(e);
           });
     };
-    if (searchParams.get('category')) {
-      getProductsByCategory();
+    if (searchParams.get('query')) {
+      getProductByQuery();
+    } else if (searchParams.get('category')) {
+      getProductByCategory();
     } else {
       getProducts();
     }
@@ -84,15 +127,15 @@ export default function List() {
       <SearchBar />
       <Filters />
       {loadingData ? (
-        <div className='h-full flex items-center justify-center mt-12'>
-        <ClipLoader
-          color={"black"}
-          loading={loadingData}
-          //cssOverride={override}
-          size={150}
-          aria-label="Loading Spinner"
-          data-testid="loader"
-        />
+        <div className="h-full flex items-center justify-center mt-12">
+          <ClipLoader
+            color={'black'}
+            loading={loadingData}
+            //cssOverride={override}
+            size={150}
+            aria-label="Loading Spinner"
+            data-testid="loader"
+          />
         </div>
       ) : (
         <div className="mt-8">

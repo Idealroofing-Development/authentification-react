@@ -49,54 +49,269 @@ import {
 } from '@/components/ui/dialog';
 import EditPopup from '@/components/Cart/EditPopup';
 import { toast } from 'react-toastify';
+import { useAuth } from '@/context/auth-context';
 
 const Cart = () => {
   const [cart, setCart] = useState(null);
+  const [cartInfos, setCartInfos] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const [endUsers, setEndUsers] = useState(null);
   const [selectedEndUser, setSelectedEndUser] = useState(null);
   const [loadingAttach, setLoadingAttach] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(null);
+  const [idToDelete, setIdToDelete] = useState(null);
+  const [loadingDelete, setLoadingDelete] = useState(false);
   const [customAddress, setCustomAddress] = useState(false);
-  const [addresses, setAddresses] = useState([
-    {
-      ship_id: '1',
-      customer_id: '020025',
-      customer_num: '66',
-      address: '1841 Vultee St',
-      city: 'Allentown',
-      state: 'PA',
-      country: 'United States',
-      zip: '18103',
-      is_default: '1',
-      label: 'My address'
-    },
-    {
-      ship_id: '2',
-      customer_id: '020025',
-      customer_num: '66',
-      address: '1841 Vultee St',
-      city: 'Allentown',
-      state: 'PA',
-      country: 'United States',
-      zip: '18103',
-      is_default: '0',
-      label: 'My address'
-    },
-    {
-      ship_id: '3',
-      customer_id: '020025',
-      customer_num: '66',
-      address: '1841 Vultee St',
-      city: 'Allentown',
-      state: 'PA',
-      country: 'United States',
-      zip: '18103',
-      is_default: '0',
-      label: 'Attached client address'
-    }
-  ]);
+  const [addresses, setAddresses] = useState([]);
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
+  const [loadingCreatingQuote, setLoadingCreatingQuote] = useState(false);
+  const [attachedClient, setAttachedClient] = useState(null);
+  const [miscCharges, setMiscCharges] = useState(0);
+  const [linesTotal, setLinesTotal] = useState(0);
+  const [subTotal, setSubTotal] = useState(0);
+  const [customAddressValues, setCustomAddressValues] = useState({
+    address: '',
+    city: '',
+    state: '',
+    country: '',
+    zip: '',
+    phone: '',
+    name: '',
+    email: ''
+  });
+
+  const [loadingSaveCart, setLoadingSaveCart] = useState(false);
+
+  const [loadingOrder, setLoadingOrder] = useState(false);
+
+  const orderCart = async () => {
+    setLoadingOrder(true);
+    await axios
+      .post(
+        `${import.meta.env.VITE_REACT_API_URL}/orders/create`,
+        selectedAddress
+          ? selectedAddress?.label === 'My address'
+            ? {
+                cart_id: cartInfos?.id,
+                ship_id: selectedAddress?.ship_id ? selectedAddress?.ship_id : "",
+                OTSContact: '',
+                OTSName: '',
+                OTSAddr1: '',
+                OTSAddr2: '',
+                OTSAddr3: '',
+                OTSCity: '',
+                OTSProv: '',
+                OTSZip: '',
+                OTSCountry: '',
+                useOTS: false
+              }
+            : {
+                cart_id: cartInfos?.id,
+                ship_id: '',
+                OTSContact: selectedAddress?.phone,
+                OTSName: selectedAddress?.name,
+                OTSAddr1: selectedAddress?.address,
+                OTSAddr2: '',
+                OTSAddr3: '',
+                OTSCity: selectedAddress?.city,
+                OTSProv: selectedAddress?.state,
+                OTSZip: selectedAddress?.zip,
+                OTSCountry: selectedAddress?.country,
+                useOTS: true
+              }
+          : {
+              cart_id: cartInfos?.id,
+              ship_id: '',
+              OTSContact: customAddressValues?.phone,
+              OTSName: customAddressValues?.name,
+              OTSAddr1: customAddressValues?.address,
+              OTSAddr2: '',
+              OTSAddr3: '',
+              OTSCity: customAddressValues?.city,
+              OTSProv: customAddressValues?.state,
+              OTSZip: customAddressValues?.zip,
+              OTSCountry: customAddressValues?.country,
+              useOTS: true
+            },
+
+        {
+          headers: {
+            Authorization: `Bearer ${user}`
+          }
+        }
+      )
+      .then((res) => {
+        setLoadingOrder(false);
+        toast.success('Order created successfully');
+      })
+      .catch((e) => {
+        setLoadingOrder(false);
+        toast.error('Error creating order');
+      });
+  };
+
+  const { user } = useAuth();
+
+  const saveCart = async () => {
+    setLoadingSaveCart(true);
+    await axios
+      .post(
+        `${import.meta.env.VITE_REACT_API_URL}/cart/save`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${user}`
+          }
+        }
+      )
+      .then(() => {
+        setLoadingSaveCart(false);
+        toast.success('Cart saved successfully');
+      })
+      .catch((e) => {
+        setLoadingSaveCart(false);
+        toast.error('Error saving cart');
+      });
+  };
+
+  const deleteItem = async (id) => {
+    //console.log("cartItem", cart.filter((cartItem) => cartItem.line.id !== id.toString()))
+    setLoadingDelete(true);
+    await axios
+      .delete(`${import.meta.env.VITE_REACT_API_URL}/cart/line/delete/?line_id=${id}`, {
+        headers: {
+          Authorization: `Bearer ${user}`
+        }
+      })
+      .then((res) => {
+        setLoadingDelete(false);
+        //setSelectedPartNum(null);
+        toast.success('Product added to cart successfully');
+
+        setCart((prevCart) => {
+          // Filter out the cart item where line.id matches the id
+          const updatedCart = prevCart.filter((cartItem) => cartItem.line.id !== id);
+          return updatedCart;
+        });
+      })
+      .catch((e) => {
+        setLoadingDelete(false);
+        toast.error('Error deleting Line');
+      });
+  };
+
+  const detachClient = async () => {
+    await axios
+      .post(
+        `${import.meta.env.VITE_REACT_API_URL}/cart/enduser/detach`,
+        {
+          end_user_id: attachedClient?.id
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${user}`
+          }
+        }
+      )
+      .then(() => {
+        toast.success('Client detached successfully');
+        setAttachedClient(null);
+      })
+      .catch((e) => {
+        toast.error('Error detacching client');
+      });
+  };
+
+  useEffect(() => {
+    const calculateMiscCharges = () => {
+      return cart?.reduce((acc, line) => {
+        const { product_ifilm_fee, product_iEmbossed_fee } = line.line;
+        return acc + parseFloat(product_ifilm_fee) + parseFloat(product_iEmbossed_fee);
+      }, 0);
+    };
+
+    const calculateLinesTotal = () => {
+      return cart?.reduce((acc, line) => {
+        const { product_salesQty, unity_price } = line.line;
+        return acc + parseFloat(product_salesQty) * parseFloat(unity_price);
+      }, 0);
+    };
+
+    const miscChargesTotal = calculateMiscCharges();
+    const linesTotalAmount = calculateLinesTotal();
+    const subTotalAmount = miscChargesTotal + linesTotalAmount;
+
+    setMiscCharges(miscChargesTotal);
+    setLinesTotal(linesTotalAmount);
+    setSubTotal(subTotalAmount);
+  }, [cart]);
+
+  const requestQuote = async () => {
+    setLoadingCreatingQuote(true);
+    await axios
+      .post(
+        `${import.meta.env.VITE_REACT_API_URL}/quote/store`,
+        selectedAddress
+          ? selectedAddress?.label === 'My address'
+            ? {
+                //cart_id: Number(cartInfos?.id),
+                ship_id: selectedAddress?.ship_id,
+                OTSContact: '',
+                OTSName: '',
+                OTSAddr1: '',
+                OTSAddr2: '',
+                OTSAddr3: '',
+                OTSCity: '',
+                OTSProv: '',
+                OTSZip: '',
+                OTSCountry: '',
+                useOTS: false
+              }
+            : {
+                //cart_id: Number(cartInfos?.id),
+                ship_id: '',
+                OTSContact: selectedAddress?.phone,
+                OTSName: selectedAddress?.name,
+                OTSAddr1: selectedAddress?.address,
+                OTSAddr2: '',
+                OTSAddr3: '',
+                OTSCity: selectedAddress?.city,
+                OTSProv: selectedAddress?.state,
+                OTSZip: selectedAddress?.zip,
+                OTSCountry: selectedAddress?.country,
+                useOTS: true
+              }
+          : {
+              //cart_id: Number(cartInfos?.id),
+              ship_id: '',
+              OTSContact: customAddressValues?.phone,
+              OTSName: customAddressValues?.name,
+              OTSAddr1: customAddressValues?.address,
+              OTSAddr2: '',
+              OTSAddr3: '',
+              OTSCity: customAddressValues?.city,
+              OTSProv: customAddressValues?.state,
+              OTSZip: customAddressValues?.zip,
+              OTSCountry: customAddressValues?.country,
+              useOTS: true
+            },
+
+        {
+          headers: {
+            Authorization: `Bearer ${user}`
+          }
+        }
+      )
+      .then((res) => {
+        setLoadingCreatingQuote(false);
+        toast.success('Quote created successfully');
+      })
+      .catch((e) => {
+        setLoadingCreatingQuote(false);
+        toast.error('Error creating quote');
+      });
+  };
 
   useEffect(() => {
     if (addresses) {
@@ -104,16 +319,65 @@ const Cart = () => {
     }
   }, [addresses]);
 
+  const getAddresses = async () => {
+    setLoadingAddresses(true);
+    setAddresses([]);
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_REACT_API_URL}/cart/addresses`, {
+        headers: {
+          Authorization: `Bearer ${user}`
+        }
+      });
+
+      setLoadingAddresses(false);
+
+      const { endUser, customer_addresses } = res.data;
+
+      const formattedAddresses = [];
+
+      if (endUser) {
+        formattedAddresses.push({
+          label: 'Client address',
+          name: endUser?.name,
+          email: endUser?.email,
+          phone: endUser?.phone,
+          address: endUser.address,
+          city: endUser.city,
+          state: endUser.state,
+          country: endUser.country,
+          zip: endUser.zip,
+          is_default: '0'
+        });
+      }
+
+      const customerAddresses = customer_addresses.map((addr) => ({
+        label: 'My address',
+        address: addr.address,
+        city: addr.city,
+        state: addr.state,
+        country: addr.country,
+        zip: addr.zip,
+        is_default: addr.is_default
+      }));
+
+      setAddresses([...formattedAddresses, ...customerAddresses]);
+    } catch (e) {
+      setLoadingAddresses(false);
+      toast.error('Error getting addresses');
+      setAddresses(null);
+    }
+  };
+
   useEffect(() => {
     const getEndUsers = async () => {
       await axios
         .get(`${import.meta.env.VITE_REACT_API_URL}/endusers`, {
           headers: {
-            Authorization: 'Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75'
+            Authorization: `Bearer ${user}`
           }
         })
         .then((res) => {
-          setEndUsers(res.data.data);
+          setEndUsers(res.data);
         })
         .catch(() => {
           toast.error('Error getting End Users');
@@ -133,11 +397,12 @@ const Cart = () => {
       await axios
         .get(`${import.meta.env.VITE_REACT_API_URL}/cart/lines`, {
           headers: {
-            Authorization: 'Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75'
+            Authorization: `Bearer ${user}`
           }
         })
         .then((res) => {
           setLoading(false);
+          setCartInfos(res.data.cart);
           const cartData = res.data.lines.map((item) => ({
             ...item,
             line: {
@@ -166,13 +431,14 @@ const Cart = () => {
         },
         {
           headers: {
-            Authorization: 'Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75'
+            Authorization: `Bearer ${user}`
           }
         }
       )
       .then(() => {
         toast.success('Cart attached successfully');
         setLoadingAttach(false);
+        setAttachedClient(endUsers?.find((c) => c.id == selectedEndUser));
       })
       .catch((e) => {
         toast.error('Error attaching cart');
@@ -182,27 +448,63 @@ const Cart = () => {
 
   function parseProductVariables(input) {
     if (!input) return {};
-
+  
     const allowedProperties = ['A', 'B', 'C', 'P1', 'P2', 'X', 'Y'];
     const result = {};
     const parts = input.split(' ');
-
-    if (parts.length < 3) return result;
-
-    // Extract the "Louv: 4: AEGI" part
-    const letters = parts[2];
-    result.V = letters ? letters.split('') : [];
-
-    // Extract the remaining key-value pairs (A=2", B=1", etc.)
-    parts.slice(3).forEach((part) => {
+  
+    let index = 0;
+  
+    // Check if the first part is "Louv:"
+    if (parts[index] && parts[index].startsWith("Louv:")) {
+      index++; // Move to the next part
+      // Check if the next part is the number (e.g., "4:")
+      if (parts[index] && parts[index].includes(':')) {
+        index++; // Move to the next part
+        // Extract the letters part (e.g., "AEGI")
+        if (parts[index]) {
+          const letters = parts[index];
+          result.V = letters.split('');
+          index++; // Move to the next part
+        }
+      }
+    }
+  
+    // Extract the remaining key-value pairs (A=8", B=2", etc.)
+    parts.slice(index).forEach((part) => {
       const [key, value] = part.split('=');
       if (key && value && allowedProperties.includes(key)) {
         result[key] = parseFloat(value.replace('"', ''));
       }
     });
-    console.log(result);
+  
     return result;
   }
+  
+
+  
+
+  useEffect(() => {
+    const getClient = async () => {
+      axios
+        .get(
+          `${import.meta.env.VITE_REACT_API_URL}/endusers/show?id=${Number(cartInfos?.end_user_id)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${user}`
+            }
+          }
+        )
+        .then((res) => {
+          setAttachedClient(res.data);
+        })
+        .catch(() => {
+          toast.error('Error getting Attached client');
+        });
+    };
+
+    if (cartInfos?.end_user_id) getClient();
+  }, [cartInfos]);
 
   return (
     <div className="wrapper">
@@ -222,7 +524,9 @@ const Cart = () => {
           <div className="flex lg:items-center lg:justify-between lg:flex-row flex-col gap-4">
             <div className="flex items-center gap-4 justify-between lg:justify-normal">
               <h3 className="capitalize text-xl font-bold">Your shopping cart</h3>
-              <Button>Save</Button>
+              <Button disabled={loadingSaveCart} onClick={loadingSaveCart ? null : saveCart}>
+                {loadingSaveCart ? 'Saving...' : 'Save'}
+              </Button>
             </div>
             <div>
               <Button className="text-lg font-semibold" size="lg">
@@ -231,7 +535,7 @@ const Cart = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-8 lg:flex-row w-100 lg:mt-8">
+          <div className="flex flex-col gap-8 lg:flex-row w-100 lg:mt-8 items-baseline">
             <Table className="whitespace-nowrap lg:w-[100%] w-full">
               <TableHeader>
                 <TableRow>
@@ -333,33 +637,35 @@ const Cart = () => {
                                       : {}
                                   )}
                                   id={item?.line?.id}
+                                  setCart={setCart}
                                 />
                               </DialogDescription>
                             </DialogHeader>
                           </DialogContent>
                         </Dialog>
-                        <AlertDialog>
-                          <AlertDialogTrigger>
-                            <Trash className="cursor-pointer" size={22} />
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Are you sure you want to delete this line?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete this
-                                line.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => deleteLine(item?.line?.id)}>
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <Dialog>
+                          <DialogTrigger onClick={() => setIdToDelete(item?.line?.id)}>
+                            <Trash size={22} />
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Delete Line</DialogTitle>
+                            </DialogHeader>
+                            <DialogDescription>
+                              Are you sure you want to delete this line? This action cannot be
+                              undone. This will permanently delete this line.
+                            </DialogDescription>
+
+                            <DialogFooter>
+                              <Button
+                                onClick={() => deleteItem(idToDelete)}
+                                disabled={loadingDelete}
+                                className="bg-red-500 text-white hover:bg-red-500/90">
+                                {loadingDelete ? 'Deleting line...' : 'Delete'}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -367,28 +673,28 @@ const Cart = () => {
               </TableBody>
             </Table>
 
-            <div className="border border-gris-claire rounded-lg p-4 lg:w-[30%] max-h-max">
+            <div className="border border-gris-claire rounded-lg p-4 lg:w-[30%] h-auto">
               <div className="border-b-2 border-black flex flex-col gap-8 pb-8">
                 <div className="flex justify-between items-center">
                   <p>Misc Charges : </p>
-                  <p>$245</p>
+                  <p>${miscCharges}</p>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <p>Lines Total : </p>
-                  <p>$2485</p>
+                  <p>${linesTotal}</p>
                 </div>
 
-                <div className="flex justify-between items-center">
+                {/*<div className="flex justify-between items-center">
                   <p>Delivery Fee : </p>
-                  <p>$250</p>
-                </div>
+                  <p>${subTotal}</p>
+                </div>*/}
               </div>
 
               <div className="border-b-2 border-black flex flex-col gap-8 py-8">
                 <div className="flex justify-between items-center">
-                  <p>Subtotal : </p>
-                  <p>$245978</p>
+                  <p className='font-bold'>Subtotal : </p>
+                  <p>${subTotal}</p>
                 </div>
 
                 <div className="flex justify-end items-center">
@@ -396,35 +702,49 @@ const Cart = () => {
                 </div>
               </div>
 
-              <div className="py-8">
+              {/*<div className="py-8">
                 <div className="flex justify-between items-center">
                   <p className="font-bold">Grand Total : </p>
                   <p>$245978</p>
                 </div>
-              </div>
+              </div>*/}
 
-              <div className="flex flex-col gap-4">
-                <select
-                  className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:opacity-50"
-                  onChange={(e) => setSelectedEndUser(e.target.value)}
-                  value={selectedEndUser}>
-                  <option value="">Select an client</option>
-                  {endUsers?.map((user) => (
-                    <option key={user?.id} value={user?.id}>
-                      {user?.name}
-                    </option>
-                  ))}
-                </select>
-                <Button
-                  disabled={loadingAttach || !selectedEndUser}
-                  onClick={loadingAttach ? null : AttachCart}
-                  className="w-100 rounded-md">
-                  {loadingAttach ? 'Attaching cart' : 'Attach a client'}
-                </Button>
-
+              <div className="flex flex-col gap-4 mt-4">
+                {!attachedClient ? (
+                  <>
+                    <select
+                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:opacity-50"
+                      onChange={(e) => setSelectedEndUser(e.target.value)}
+                      value={selectedEndUser}>
+                      <option value="">Select an client</option>
+                      {endUsers?.map((user) => (
+                        <option key={user?.id} value={user?.id}>
+                          {user?.name}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      disabled={loadingAttach || !selectedEndUser}
+                      onClick={loadingAttach ? null : AttachCart}
+                      className="w-100 rounded-md">
+                      {loadingAttach ? 'Attaching cart' : 'Attach a client'}
+                    </Button>
+                  </>
+                ) : (
+                  <div>
+                    This cart is attached to {attachedClient?.name},{' '}
+                    <span
+                      onClick={detachClient}
+                      className="text-blue-500 hover:text-blue-500/90 underline cursor-pointer">
+                      Detach this client?
+                    </span>
+                  </div>
+                )}
                 <DialogSmall>
                   <DialogTrigger>
-                    <Button className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary w-full">
+                    <Button
+                      onClick={getAddresses}
+                      className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary w-full">
                       Request Quote
                     </Button>
                   </DialogTrigger>
@@ -432,56 +752,161 @@ const Cart = () => {
                     <DialogHeaderSmall>
                       <DialogTitleSmall>Please choose an address </DialogTitleSmall>
                     </DialogHeaderSmall>
-                    <DialogDescriptionSmall className="flex flex-col gap-2">
-                      {addresses?.map((address) => (
-                        <div
-                          onClick={() => setSelectedAddress(address)}
-                          className={`flex justify-between gap-4 text-black border rounded-md px-4 py-3 cursor-pointer ${
-                            selectedAddress?.ship_id === address?.ship_id
-                              ? 'ring-2 ring-blue-500'
-                              : ''
-                          }`}
-                          key={address?.ship_id}>
-                          <div>
-                            <h3 className="font-blod text-xl">{address.label}</h3>
+                    {loadingAddresses ? (
+                      <DialogDescriptionSmall>
+                        <div className="h-[300px] flex justify-center items-center">
+                          <ClipLoader
+                            color={'black'}
+                            loading={loadingAddresses}
+                            //cssOverride={override}
+                            size={150}
+                            aria-label="Loading Spinner"
+                            data-testid="loader"
+                          />
+                        </div>
+                      </DialogDescriptionSmall>
+                    ) : (
+                      <DialogDescriptionSmall className="flex flex-col gap-2">
+                        {addresses?.map((address) => (
+                          <div
+                            onClick={() => setSelectedAddress(address)}
+                            className={`flex justify-between gap-4 text-black border rounded-md px-4 py-3 cursor-pointer ${
+                              JSON.stringify(selectedAddress) === JSON.stringify(address)
+                                ? 'ring-2 ring-blue-500'
+                                : ''
+                            }`}
+                            key={address?.ship_id}>
                             <div>
-                              {address?.address +
-                                ', ' +
-                                address?.city +
-                                ', ' +
-                                address?.zip +
-                                ' ' +
-                                address?.state +
-                                ', ' +
-                                address?.country}
+                              <h3 className="font-blod text-xl">{address.label}</h3>
+                              <div>
+                                {address?.address +
+                                  ', ' +
+                                  address?.city +
+                                  ', ' +
+                                  address?.zip +
+                                  ' ' +
+                                  address?.state +
+                                  ', ' +
+                                  address?.country}
+                              </div>
+                            </div>
+                            <div>
+                              <input
+                                checked={
+                                  JSON.stringify(selectedAddress) === JSON.stringify(address)
+                                }
+                                type="radio"
+                              />
                             </div>
                           </div>
+                        ))}
+
+                        <div
+                          onClick={() => setSelectedAddress(null)}
+                          className={`flex justify-between gap-4 text-black border rounded-md px-4 py-3 cursor-pointer ${
+                            !selectedAddress ? 'ring-2 ring-blue-500' : ''
+                          }`}>
                           <div>
-                            <input
-                              checked={selectedAddress?.ship_id === address?.ship_id}
-                              type="radio"
-                            />
+                            <h3 className="font-blod text-xl">Custom address</h3>
+                          </div>
+                          <div>
+                            <input checked={!selectedAddress} type="radio" />
                           </div>
                         </div>
-                      ))}
-
-                      <div
-                        onClick={() => setSelectedAddress(null)}
-                        className={`flex justify-between gap-4 text-black border rounded-md px-4 py-3 cursor-pointer ${
-                          !selectedAddress ? 'ring-2 ring-blue-500' : ''
-                        }`}>
-                        <div>
-                          <h3 className="font-blod text-xl">Custom address</h3>
-                        </div>
-                        <div>
-                          <input checked={!selectedAddress} type="radio" />
-                        </div>
-                      </div>
-                    </DialogDescriptionSmall>
+                      </DialogDescriptionSmall>
+                    )}
 
                     <DialogFooterSmall>
-                      <Button className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary">
-                        Request Quote
+                      <Button
+                        disabled={loadingCreatingQuote}
+                        onClick={loadingCreatingQuote ? null : requestQuote}
+                        className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary">
+                        {loadingCreatingQuote ? 'Creating quote...' : 'Request Quote'}
+                      </Button>
+                    </DialogFooterSmall>
+                  </DialogContentSmall>
+                </DialogSmall>
+
+                <DialogSmall>
+                  <DialogTrigger>
+                    <Button onClick={getAddresses} className="w-100 rounded-md  text-white  w-full">
+                      Order
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContentSmall>
+                    <DialogHeaderSmall>
+                      <DialogTitleSmall>Please choose an address </DialogTitleSmall>
+                    </DialogHeaderSmall>
+                    {loadingAddresses ? (
+                      <DialogDescriptionSmall>
+                        <div className="h-[300px] flex justify-center items-center">
+                          <ClipLoader
+                            color={'black'}
+                            loading={loadingAddresses}
+                            //cssOverride={override}
+                            size={150}
+                            aria-label="Loading Spinner"
+                            data-testid="loader"
+                          />
+                        </div>
+                      </DialogDescriptionSmall>
+                    ) : (
+                      <DialogDescriptionSmall className="flex flex-col gap-2">
+                        {addresses?.map((address) => (
+                          <div
+                            onClick={() => setSelectedAddress(address)}
+                            className={`flex justify-between gap-4 text-black border rounded-md px-4 py-3 cursor-pointer ${
+                              JSON.stringify(selectedAddress) === JSON.stringify(address)
+                                ? 'ring-2 ring-blue-500'
+                                : ''
+                            }`}
+                            key={address?.ship_id}>
+                            <div>
+                              <h3 className="font-blod text-xl">{address.label}</h3>
+                              <div>
+                                {address?.address +
+                                  ', ' +
+                                  address?.city +
+                                  ', ' +
+                                  address?.zip +
+                                  ' ' +
+                                  address?.state +
+                                  ', ' +
+                                  address?.country}
+                              </div>
+                            </div>
+                            <div>
+                              <input
+                                checked={
+                                  JSON.stringify(selectedAddress) === JSON.stringify(address)
+                                }
+                                type="radio"
+                              />
+                            </div>
+                          </div>
+                        ))}
+
+                        <div
+                          onClick={() => setSelectedAddress(null)}
+                          className={`flex justify-between gap-4 text-black border rounded-md px-4 py-3 cursor-pointer ${
+                            !selectedAddress ? 'ring-2 ring-blue-500' : ''
+                          }`}>
+                          <div>
+                            <h3 className="font-blod text-xl">Custom address</h3>
+                          </div>
+                          <div>
+                            <input checked={!selectedAddress} type="radio" />
+                          </div>
+                        </div>
+                      </DialogDescriptionSmall>
+                    )}
+
+                    <DialogFooterSmall>
+                      <Button
+                        disabled={loadingOrder}
+                        onClick={loadingOrder ? null : orderCart}
+                        className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary">
+                        {loadingOrder ? 'Creating order...' : 'Create order'}
                       </Button>
                     </DialogFooterSmall>
                   </DialogContentSmall>

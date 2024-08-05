@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   Table,
   TableBody,
@@ -8,83 +8,95 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
+import { useState } from 'react';
+import { useEffect } from 'react';
+import { useAuth } from '@/context/auth-context';
+import { toast } from 'react-toastify';
+import { ClipLoader } from 'react-spinners';
+import axios from 'axios';
 
 const Orders = () => {
+  const [loading, setLoading] = useState(false);
+  const [orders, setOrders] = useState(null);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const getOrders = async () => {
+      setLoading(true);
+      await axios
+        .get(`${import.meta.env.VITE_REACT_API_URL}/orders`, {
+          headers: {
+            Authorization: `Bearer ${user}`
+          }
+        })
+        .then((res) => {
+          setLoading(false);
+          setOrders(res.data);
+        })
+        .catch((e) => {
+          toast.error('Error getting quotes');
+          setLoading(false);
+        });
+    };
+    getOrders();
+  }, []);
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+    const year = date.getFullYear();
+  
+    return `${day}/${month}/${year}`;
+  };
   return (
     <div className="wrapper">
       <h3 className="capitalize text-xl font-bold">My Orders</h3>
 
-      <div className="mt-4 lg:mt-8">
-        <Table className="whitespace-nowrap w-full">
-          <TableHeader className="capitalize">
-            <TableRow>
-              <TableHead>Order Number</TableHead>
-              <TableHead>PO Name</TableHead>
-              <TableHead>Created By</TableHead>
-              <TableHead>Last Accessed</TableHead>
-              <TableHead>Customer Info</TableHead>
-              <TableHead>Creation Date</TableHead>
-              <TableHead>Lines</TableHead>
-              <TableHead>Delivery Address</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Checkout</TableHead>
-            </TableRow>
-          </TableHeader>
+      {loading ? (
+        <div className="h-full flex items-center justify-center mt-12">
+          <ClipLoader
+            color={'black'}
+            loading={loading}
+            //cssOverride={override}
+            size={150}
+            aria-label="Loading Spinner"
+            data-testid="loader"
+          />
+        </div>
+      ) : (
+        <div className="mt-4 lg:mt-8">
+          <Table className="whitespace-nowrap w-full">
+            <TableHeader className="capitalize">
+              <TableRow>
+                <TableHead>Order Number</TableHead>
+                <TableHead>PO Name</TableHead>
 
-          <TableBody>
-            <TableRow>
-              <TableCell>53314</TableCell>
-              <TableCell>Test PN</TableCell>
-              <TableCell>Macha L</TableCell>
-              <TableCell>Macha L</TableCell>
-              <TableCell>Contractor A</TableCell>
-              <TableCell>2024-04-17</TableCell>
-              <TableCell>5</TableCell>
-              <TableCell>125 Maple St</TableCell>
-              <TableCell>$3562.85</TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>53314</TableCell>
-              <TableCell>Test PN</TableCell>
-              <TableCell>Macha L</TableCell>
-              <TableCell>Macha L</TableCell>
-              <TableCell>Contractor A</TableCell>
-              <TableCell>2024-04-17</TableCell>
-              <TableCell>5</TableCell>
-              <TableCell>125 Maple St</TableCell>
-              <TableCell>$3562.85</TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>53314</TableCell>
-              <TableCell>Test PN</TableCell>
-              <TableCell>Macha L</TableCell>
-              <TableCell>Macha L</TableCell>
-              <TableCell>Contractor A</TableCell>
-              <TableCell>2024-04-17</TableCell>
-              <TableCell>5</TableCell>
-              <TableCell>125 Maple St</TableCell>
-              <TableCell>$3562.85</TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>53314</TableCell>
-              <TableCell>Test PN</TableCell>
-              <TableCell>Macha L</TableCell>
-              <TableCell>Macha L</TableCell>
-              <TableCell>Contractor A</TableCell>
-              <TableCell>2024-04-17</TableCell>
-              <TableCell>5</TableCell>
-              <TableCell>125 Maple St</TableCell>
-              <TableCell>$3562.85</TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </div>
+                <TableHead>Creation Date</TableHead>
+                <TableHead>Net sale</TableHead>
+                <TableHead>Tax amount</TableHead>
+                <TableHead>Total</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {orders?.map((order) => (
+                <TableRow key={order.number}>
+                  <TableCell>{order?.number}</TableCell>
+                  <TableCell>{order?.poNum}</TableCell>
+
+                  <TableCell>{formatDate(order?.created_at)}</TableCell>
+                  <TableCell>{order.net_sale}</TableCell>
+                  <TableCell>{order.tax_amount}</TableCell>
+                  <TableCell>{order.total_sale}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
-  )
-}
+  );
+};
 
-export default Orders
+export default Orders;

@@ -9,11 +9,18 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'react-toastify';
 import { Button } from '../ui/button';
+import { useAuth } from '@/context/auth-context';
+import { useContext } from 'react';
+import { UserInfoContext } from '@/context/userInfosContext';
 
-const EditPopup = ({ id, vars }) => {
+const EditPopup = ({ id, vars, setCart }) => {
   const [line, setLine] = useState(null);
   const [loading, setLoading] = useState(false);
   const [product, setProduct] = useState(null);
+
+  const { userInfos } = useContext(UserInfoContext);
+
+  const {user} = useAuth()
 
   useEffect(() => {
     setLoading(true);
@@ -21,7 +28,7 @@ const EditPopup = ({ id, vars }) => {
       await axios
         .get(`${import.meta.env.VITE_REACT_API_URL}/cart/line/get?line_id=${id}`, {
           headers: {
-            Authorization: 'Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75'
+            Authorization: `Bearer ${user}`
           }
         })
         .then((res) => {
@@ -39,8 +46,9 @@ const EditPopup = ({ id, vars }) => {
           console.log(e);
         });
     };
+    
     getLine();
-  }, []);
+  }, [user]);
 
   const [uniqueGauges, setUniqueGauges] = useState([]);
   const [uniqueColors, setUniqueColors] = useState([]);
@@ -533,7 +541,8 @@ const EditPopup = ({ id, vars }) => {
         `${import.meta.env.VITE_REACT_EPICOR_API_URL}/GetPrice`,
         {
           PartNum: selectedPartNum,
-          CustID: '210745',
+          //CustID: userInfos?.customer_id,
+          CustID:"210745",
           Currency: 'CAD',
           Qty: product?.product?.options_list?.QTYFT
             ? selectedLength
@@ -585,9 +594,11 @@ const EditPopup = ({ id, vars }) => {
       Object.entries(productVariables).filter(([_, v]) => v !== undefined)
     );
 
-    const LouvVariables = selectedVValues?.length
-      ? `Louv: ${Number(selectedVValues.length)}: ${selectedVValues.sort().join('')}`
+    const validSelectedVValues = selectedVValues?.filter((value) => vOptions.includes(value)) || [];
+    const LouvVariables = validSelectedVValues.length
+      ? `Louv: ${Number(validSelectedVValues.length)}: ${validSelectedVValues.sort().join('')}`
       : '';
+
     const AVariable = a ? `A=${a}"` : '';
     const BVariable = b ? `B=${b}"` : '';
     const CVariable = c ? `X=${c}"` : '';
@@ -608,6 +619,7 @@ const EditPopup = ({ id, vars }) => {
       .filter(Boolean)
       .join(' ');
     const length = convertToInches(lengthFT) + convertToInches(lengthMM) + lengthInch;
+    console.log(selectedVValues);
     await axios
       .put(
         `${import.meta.env.VITE_REACT_API_URL}/cart/line/update`,
@@ -659,7 +671,8 @@ const EditPopup = ({ id, vars }) => {
 
           pricing: {
             PartNum: selectedPartNum,
-            CustID: '210745',
+            //CustID: userInfos?.customer_id,
+            CustID:"210745",
             Currency: 'CAD',
             Qty: product?.product?.options_list?.QTYFT
               ? selectedLength
@@ -694,7 +707,7 @@ const EditPopup = ({ id, vars }) => {
         },
         {
           headers: {
-            Authorization: 'Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75'
+            Authorization: `Bearer ${user}`
           }
         }
       )
@@ -702,7 +715,27 @@ const EditPopup = ({ id, vars }) => {
         setLoadingAddToCart(false);
         setSelectedPartNum(null);
         toast.success('Product added to cart successfully');
+
+        setCart((prevCart) => {
+          // Create a new array with updated lines
+          const updatedCart = prevCart.map((cartItem) => {
+            // Check if the line id matches the id from res.data.line
+            if (cartItem.line.id === res.data.line.id) {
+              // Replace the line with the new data
+              return {
+                ...cartItem,
+                line: res.data.line,
+                part: [product?.parts?.find((p) => p.partnum === res.data.line.product_partNum)]
+              };
+            }
+            // Return the original cart item if the id does not match
+            return cartItem;
+          });
+
+          return updatedCart;
+        });
       })
+
       .catch((e) => {
         setLoadingAddToCart(false);
         setSelectedPartNum(null);
@@ -714,12 +747,12 @@ const EditPopup = ({ id, vars }) => {
     if (selectedPartNum) addToCart();
   }, [selectedPartNum]);
 
-   useEffect(() => {
+  useEffect(() => {
     if (length?.length) {
-    console.log(length)
-      const inchRegex = /(\d+\.?\d*)\s*['"]/;   // matches a number followed by ' or "
-      const ftRegex = /(\d+\.?\d*)\s*ft/;       // matches a number followed by ft
-      const mmRegex = /(\d+\.?\d*)\s*mm/;       // matches a number followed by mm
+      console.log(length);
+      const inchRegex = /(\d+\.?\d*)\s*['"]/; // matches a number followed by ' or "
+      const ftRegex = /(\d+\.?\d*)\s*ft/; // matches a number followed by ft
+      const mmRegex = /(\d+\.?\d*)\s*mm/; // matches a number followed by mm
 
       const inchMatch = length.match(inchRegex);
       const ftMatch = length.match(ftRegex);
@@ -731,10 +764,10 @@ const EditPopup = ({ id, vars }) => {
     }
   }, [length]);
 
- useEffect(() => {
-    console.log(lengthFT+"FT")
-    console.log(lengthInch+"IN")
-    console.log(lengthMM+"MM")
+  useEffect(() => {
+    console.log(lengthFT + 'FT');
+    console.log(lengthInch + 'IN');
+    console.log(lengthMM + 'MM');
   }, [lengthInch, lengthFT, lengthMM]);
 
   useEffect(() => {
@@ -752,13 +785,12 @@ const EditPopup = ({ id, vars }) => {
       setC(vars?.C);
       setP1(vars?.P1);
       setP2(vars?.P2);
-      setSelectedVValues(vars?.V);
+      setSelectedVValues(vars?.V || []);
       setSelectedX(vars?.X);
       setSelectedY(vars?.Y);
     }
   }, [initialPart]);
-  
-  
+
   return (
     <div>
       {loading ? (

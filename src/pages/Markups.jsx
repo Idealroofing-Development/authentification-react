@@ -43,6 +43,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { MultiSelect } from 'react-multi-select-component';
+import { useAuth } from '@/context/auth-context';
 
 const Markups = () => {
   const [loading, setLoading] = useState(false);
@@ -84,9 +85,8 @@ const Markups = () => {
   const [endUsers, setEndUsers] = useState(null);
   const [selectedEndUser, setSelectedEndUser] = useState(null);
 
-  useEffect(() => {
-    console.log(markupToCopy);
-  }, [markupToCopy]);
+  const {user} = useAuth()
+
 
   const customValueRendererCategories = (selected, options) => {
     if (selected?.length === options?.length) {
@@ -107,11 +107,11 @@ const Markups = () => {
       await axios
         .get(`${import.meta.env.VITE_REACT_API_URL}/endusers`, {
           headers: {
-            Authorization: 'Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75'
+            Authorization: `Bearer ${user}`
           }
         })
         .then((res) => {
-          setEndUsers(res.data.data);
+          setEndUsers(res.data);
         })
         .catch(() => {
           toast.error('Error getting End Users');
@@ -126,7 +126,7 @@ const Markups = () => {
       await axios
         .get(`${import.meta.env.VITE_REACT_API_URL}/products/categories/brands`, {
           headers: {
-            Authorization: 'Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75'
+            Authorization: `Bearer ${user}`
           }
         })
         .then((res) => {
@@ -187,7 +187,7 @@ const Markups = () => {
 
     const data = forSomeBrands
       ? selectedBrands.map((brand) => ({
-          is_fixed: isFixed ? true : 0,
+          is_fixed: isFixed ? 1 : 0,
           category: '',
           brand: brand?.value,
           description: description,
@@ -213,7 +213,7 @@ const Markups = () => {
         { markups: data }, // Send the array in the request body
         {
           headers: {
-            Authorization: 'Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75'
+            Authorization: `Bearer ${user}`
           }
         }
       );
@@ -221,17 +221,28 @@ const Markups = () => {
       setLoadingSubmit(false);
       toast.success('Markup(s) added successfully');
 
-      const newMarkups = response.data.markups.map((markup) => ({
-        ...markup,
-        is_fixed: markup.is_fixed == 0 || markup.is_fixed == false ? false : true
-      }));
+      const newMarkups = response.data.markups.map((markup) => {
+        //const { markup: markupDetails, end_user } = markup;
+        
+     
+        return {
+          ...markup?.markup,
+          enduser: markup?.end_user,
+          is_fixed: markup?.markup.is_fixed === 0 || markup?.markup.is_fixed === false ? false : true
+        };
+      });
 
+      
       setMarkups([...newMarkups, ...markups]);
     } catch (e) {
       setLoadingSubmit(false);
       console.log(e);
     }
   };
+
+  useEffect(() => {
+    console.log(markups)
+  }, [markups])
 
   useEffect(() => {
     if (categories) {
@@ -315,7 +326,7 @@ const Markups = () => {
       await axios
         .get(`${import.meta.env.VITE_REACT_API_URL}/markups`, {
           headers: {
-            Authorization: `Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75`
+            Authorization: `Bearer ${user}`
           }
         })
         .then((res) => {
@@ -445,15 +456,16 @@ const Markups = () => {
                   </div>
 
                   <div>
-                    <select className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:opacity-50" onChange={(e) => setSelectedEndUser(e.target.value)} value={selectedEndUser}>
-                      
-                        <option value="">Select an End User</option>
-                        {endUsers?.map((user) => (
-                          <option key={user?.id} value={user?.id}>
-                            {user?.name}
-                          </option>
-                        ))}
-                      
+                    <select
+                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:opacity-50"
+                      onChange={(e) => setSelectedEndUser(e.target.value)}
+                      value={selectedEndUser}>
+                      <option value="">Select an End User</option>
+                      {endUsers?.map((user) => (
+                        <option key={user?.id} value={user?.id}>
+                          {user?.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
 

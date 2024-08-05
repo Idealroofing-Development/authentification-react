@@ -38,18 +38,24 @@ import { ToastContainer } from 'react-toastify';
 import Footer from '@/components/Footer.jsx';
 import Clients from '@/pages/Clients.jsx';
 import { useEffect } from 'react';
+import { UserInfoContext } from '@/context/userInfosContext.jsx';
+import { useContext } from 'react';
+import SavedCarts from '@/pages/SavedCarts.jsx';
+import SingleCart from '@/pages/SingleCart.jsx';
 
 function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<List />} />
       <Route path="/finished" element={<FinishedScreen />} />
+      <Route path="/cart/:id" element={<SingleCart />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/orders" element={<Orders />} />
       <Route path="/quotes" element={<Quotes />} />
       <Route path="/product/:id" element={<Product />} />
       <Route path="/markups" element={<Markups />} />
       <Route path="/clients" element={<Clients />} />
+      <Route path="/carts" element={<SavedCarts />} />
       <Route path="*" element={<NotFoundScreen />} />
     </Routes>
   );
@@ -58,6 +64,8 @@ function AppRoutes() {
 export default function AuthenticatedApp() {
   const { user, logout } = useAuth();
   const queryClient = new QueryClient();
+  
+  const { userInfos } = useContext(UserInfoContext);
 
   useEffect(() => {
     console.log("user", user)
@@ -67,7 +75,7 @@ export default function AuthenticatedApp() {
       <ToastContainer />
       <nav>
         <div className="min-h-[125px] bg-green-primary text-white md:flex justify-between gap-8 lg:p-8 md:p-4 hidden">
-          <div className="text-xl">Welcome Zakaria</div>
+          <div className="text-xl">Welcome {userInfos?.first_name}</div>
           <div>
             <img src={logo} className="lg:max-w-[400px] md:max-w-[300px] " />
           </div>
@@ -101,6 +109,7 @@ export default function AuthenticatedApp() {
           <Link to="/"> Products </Link>
           <Link to="/quotes"> My Quotes </Link>
           <Link to="/orders"> My Orders </Link>
+          <Link to="/carts"> Saved Carts </Link>
           <Link to="/markups"> My Markups </Link>
           <Link to="/clients"> My Clients </Link>
         </div>

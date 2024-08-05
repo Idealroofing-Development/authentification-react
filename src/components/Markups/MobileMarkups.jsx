@@ -37,6 +37,7 @@ import {
 import { useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { useAuth } from '@/context/auth-context';
 
 const MobileMarkups = ({ markup, categories, setMarkups }) => {
   const [startDate, setStartDate] = useState('');
@@ -50,6 +51,8 @@ const MobileMarkups = ({ markup, categories, setMarkups }) => {
   const [forSomeBrands, setForSomeBrands] = useState(false);
   const [filteredBrands, setFilteredBrands] = useState(null);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
+
+  const {user} = useAuth()
 
   const parseDate = (dateString) => {
     const [day, month, year] = dateString.split('/').map(Number);
@@ -106,7 +109,7 @@ const MobileMarkups = ({ markup, categories, setMarkups }) => {
         },
         {
           headers: {
-            Authorization: 'Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75'
+            Authorization: `Bearer ${user}`
           }
         }
       )
@@ -140,7 +143,7 @@ const MobileMarkups = ({ markup, categories, setMarkups }) => {
         },
 
         headers:{
-            Authorization: `Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75`
+            Authorization: `Bearer ${user}`
         }
     }).then((res) => {
         toast.success('Markup deleted successfully')

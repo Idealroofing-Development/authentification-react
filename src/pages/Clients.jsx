@@ -26,6 +26,7 @@ import { DialogTrigger } from '@radix-ui/react-dialog';
 import { Button } from '@/components/ui/button';
 import { toast } from 'react-toastify';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/context/auth-context';
 
 const Clients = () => {
   const [clients, setClients] = useState(null);
@@ -40,7 +41,12 @@ const Clients = () => {
     phone: '',
     company: '',
     comment: '',
-    id: ''
+    id: '',
+    address: '',
+    city: '',
+    state: '',
+    country: '',
+    zip: ''
   });
   const [loadingUpdate, setLoadingUpdate] = useState(false);
 
@@ -49,8 +55,15 @@ const Clients = () => {
     email: '',
     phone: '',
     company: '',
-    comment: ''
+    comment: '',
+    address: '',
+    city: '',
+    state: '',
+    country: '',
+    zip: ''
   });
+
+  const {user} = useAuth()
 
   useEffect(() => {
     const getClient = async () => {
@@ -58,7 +71,7 @@ const Clients = () => {
       axios
         .get(`${import.meta.env.VITE_REACT_API_URL}/endusers`, {
           headers: {
-            Authorization: 'Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75'
+            Authorization: `Bearer ${user}`
           }
         })
         .then((res) => {
@@ -78,7 +91,7 @@ const Clients = () => {
     await axios
       .delete(`${import.meta.env.VITE_REACT_API_URL}/endusers/delete/?id=${id}`, {
         headers: {
-          Authorization: 'Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75'
+          Authorization: `Bearer ${user}`
         }
       })
       .then(() => {
@@ -102,20 +115,27 @@ const Clients = () => {
         {
           params: clientInfos,
           headers: {
-            Authorization: 'Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75'
+            Authorization: `Bearer ${user}`
           }
         }
       )
       .then((res) => {
         setLoadingAdd(false);
+        setClients((prevClients) => [clientInfos, ...prevClients]);
         setClientsInfos({
           name: '',
           email: '',
           phone: '',
           company: '',
-          comment: ''
+          comment: '',
+          address: '',
+          city: '',
+          state: '',
+          country: '',
+          zip: ''
         });
         toast.success('Client added successfully');
+       
       })
       .catch((e) => {
         setLoadingAdd(false);
@@ -123,22 +143,59 @@ const Clients = () => {
       });
   };
 
+  useEffect(() => {
+    console.log(clients)
+  }, [clients])
+
   const updateClient = async () => {
     setLoadingUpdate(true);
+  
+    // Find the client in the clients array with the same ID
+    const existingClient = clients.find(client => client.id === clientToEditInfos.id);
+  
+    // Clone the clientToEditInfos to avoid mutating the original object
+    const updatedClientInfo = { ...clientToEditInfos };
+  
+    // If the email hasn't changed, remove it from the updatedClientInfo
+    if (existingClient && existingClient.email === clientToEditInfos.email) {
+      delete updatedClientInfo.email;
+    }
+  
     await axios
       .patch(
         `${import.meta.env.VITE_REACT_API_URL}/endusers/update`,
         {},
         {
-          params: clientToEditInfos ,
+          params: updatedClientInfo,
           headers: {
-            Authorization: 'Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75'
+            Authorization: `Bearer ${user}`
           }
         }
       )
       .then((res) => {
         setLoadingUpdate(false);
-        setClientToEditInfos({ name: '', email: '', phone: '', company: '', comment: '', id: '' });
+  
+        // Replace the client with the same ID in the clients array
+        const updatedClients = clients.map(client =>
+          client.id === clientToEditInfos.id ? { ...client, ...clientToEditInfos } : client
+        );
+  
+        setClients(updatedClients);
+  
+        // Reset clientToEditInfos
+        setClientToEditInfos({
+          name: '',
+          email: '',
+          phone: '',
+          company: '',
+          comment: '',
+          address: '',
+          city: '',
+          state: '',
+          country: '',
+          zip: ''
+        });
+  
         toast.success('Client updated successfully');
       })
       .catch((e) => {
@@ -146,6 +203,7 @@ const Clients = () => {
         toast.error('Error Updating Client');
       });
   };
+  
   return (
     <div className="wrapper">
       <div className="flex gap-4 justify-between items-center">
@@ -211,19 +269,58 @@ const Clients = () => {
                       onChange={(e) => setClientsInfos({ ...clientInfos, comment: e.target.value })}
                     />
                   </div>
+                </TabsContent>
+                <TabsContent className="flex flex-col gap-2 text-black" value="address">
+                  <div className="flex flex-col gap-1">
+                    <label>Address</label>
+                    <Input
+                      value={clientInfos.address}
+                      onChange={(e) => setClientsInfos({ ...clientInfos, address: e.target.value })}
+                    />
+                  </div>
 
-                  <div className="flex justify-end">
-                    <Button
-                      onClick={addClient}
-                      disabled={loadingAdd}
-                      className="text-white bg-green-primary hover:bg-green-primary/90 border-none mt-1 ">
-                      {loadingAdd ? 'Adding client...' : 'Add client'}
-                    </Button>
+                  <div className="flex flex-col gap-1">
+                    <label>City</label>
+                    <Input
+                      value={clientInfos.city}
+                      onChange={(e) => setClientsInfos({ ...clientInfos, city: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label>State</label>
+                    <Input
+                      value={clientInfos.state}
+                      onChange={(e) => setClientsInfos({ ...clientInfos, state: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label>Country</label>
+                    <Input
+                      value={clientInfos.country}
+                      onChange={(e) => setClientsInfos({ ...clientInfos, country: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label>ZIP</label>
+                    <Input
+                      value={clientInfos.zip}
+                      onChange={(e) => setClientsInfos({ ...clientInfos, zip: e.target.value })}
+                    />
                   </div>
                 </TabsContent>
-                <TabsContent value="address">Change address here.</TabsContent>
               </Tabs>
             </DialogDescription>
+            <div className="flex justify-end">
+              <Button
+                onClick={addClient}
+                disabled={loadingAdd}
+                className="text-white bg-green-primary hover:bg-green-primary/90 border-none mt-1 ">
+                {loadingAdd ? 'Adding client...' : 'Add client'}
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
@@ -262,7 +359,7 @@ const Clients = () => {
                   <TableCell className="max-w-[250px] whitespace-normal">
                     {client?.comment}
                   </TableCell>
-                  <TableCell  className='flex gap-3'>
+                  <TableCell className="flex gap-3">
                     <Dialog>
                       <DialogTrigger onClick={() => setIdToDelete(client.id)}>
                         <Trash size={22} />
@@ -370,19 +467,83 @@ const Clients = () => {
                                   }
                                 />
                               </div>
+                            </TabsContent>
+                            <TabsContent className="flex flex-col gap-2 text-black" value="address">
+                              <div className="flex flex-col gap-1">
+                                <label>Address</label>
+                                <Input
+                                  value={clientToEditInfos.address}
+                                  onChange={(e) =>
+                                    setClientToEditInfos({
+                                      ...clientToEditInfos,
+                                      address: e.target.value
+                                    })
+                                  }
+                                />
+                              </div>
 
-                              <div className="flex justify-end">
-                                <Button
-                                  onClick={updateClient}
-                                  disabled={loadingUpdate}
-                                  className="text-white bg-green-primary hover:bg-green-primary/90 border-none mt-1 ">
-                                  {loadingUpdate ? 'Updating client...' : 'Update client'}
-                                </Button>
+                              <div className="flex flex-col gap-1">
+                                <label>City</label>
+                                <Input
+                                  value={clientToEditInfos.city}
+                                  onChange={(e) =>
+                                    setClientToEditInfos({
+                                      ...clientToEditInfos,
+                                      city: e.target.value
+                                    })
+                                  }
+                                />
+                              </div>
+
+                              <div className="flex flex-col gap-1">
+                                <label>State</label>
+                                <Input
+                                  value={clientToEditInfos.state}
+                                  onChange={(e) =>
+                                    setClientToEditInfos({
+                                      ...clientToEditInfos,
+                                      state: e.target.value
+                                    })
+                                  }
+                                />
+                              </div>
+
+                              <div className="flex flex-col gap-1">
+                                <label>Country</label>
+                                <Input
+                                  value={clientToEditInfos.country}
+                                  onChange={(e) =>
+                                    setClientToEditInfos({
+                                      ...clientToEditInfos,
+                                      country: e.target.value
+                                    })
+                                  }
+                                />
+                              </div>
+
+                              <div className="flex flex-col gap-1">
+                                <label>ZIP</label>
+                                <Input
+                                  value={clientToEditInfos.zip}
+                                  onChange={(e) =>
+                                    setClientToEditInfos({
+                                      ...clientToEditInfos,
+                                      zip: e.target.value
+                                    })
+                                  }
+                                />
                               </div>
                             </TabsContent>
-                            <TabsContent value="address">Change address here.</TabsContent>
                           </Tabs>
                         </DialogDescription>
+                        <div className="flex justify-end">
+                          <Button
+                            onClick={updateClient}
+                            disabled={loadingUpdate}
+                            className="text-white bg-green-primary hover:bg-green-primary/90 border-none mt-1 ">
+                            {loadingUpdate ? 'Updating client...' : 'Update client'}
+                          </Button>
+                        </div>
                       </DialogContent>
                     </Dialog>
                   </TableCell>

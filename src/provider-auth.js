@@ -12,6 +12,7 @@ async function getToken() {
 function handleUserResponse(response) {
   //il faut mettre console.log de response pour faire la déstructuration (connaitre quoi distructurer)
   window.localStorage.setItem(localStorageKey, response.token);
+  window.localStorage.setItem('userInfos', JSON.stringify(response.user));
 
   return response;
 }
@@ -35,6 +36,7 @@ function register({ email, password }) {
 // };
 async function logout() {
   window.localStorage.removeItem(localStorageKey);
+  window.localStorage.removeItem("userInfos");
 }
 
 // an auth provider wouldn't use your client, they'd have their own

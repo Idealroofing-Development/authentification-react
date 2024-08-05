@@ -47,6 +47,7 @@ import { useTransition } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { MultiSelect } from 'react-multi-select-component';
+import { useAuth } from '@/context/auth-context';
 
 const Markup = ({
   markup,
@@ -63,7 +64,7 @@ const Markup = ({
   setBrandsWithLabelForCopy,
   categoriesWithLabeForCopyl,
   setCategoriesWithLabelForCopy,
-  
+
   forSomeBrandToCopy,
   setForSomeBrandsToCopy,
   selectedCategoriesForCopy,
@@ -80,6 +81,8 @@ const Markup = ({
   const [forSomeBrands, setForSomeBrands] = useState(false);
   const [filteredBrands, setFilteredBrands] = useState(null);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
+
+  const { user } = useAuth();
 
   const customValueRendererCategoriesForCopy = (selected, options) => {
     if (selected?.length === options?.length) {
@@ -153,7 +156,7 @@ const Markup = ({
         { markups: data }, // Send the array in the request body
         {
           headers: {
-            Authorization: 'Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75'
+            Authorization: `Bearer ${user}`
           }
         }
       );
@@ -161,10 +164,16 @@ const Markup = ({
       setLoadingSubmit(false);
       toast.success('Markup(s) added successfully');
 
-      const newMarkups = response.data.markups.map((markup) => ({
-        ...markup,
-        is_fixed: markup.is_fixed == 0 || markup.is_fixed == false ? false : true
-      }));
+      const newMarkups = response.data.markups.map((markup) => {
+        //const { markup: markupDetails, end_user } = markup;
+        
+     
+        return {
+          ...markup?.markup,
+          enduser: markup?.end_user,
+          is_fixed: markup?.markup.is_fixed === 0 || markup?.markup.is_fixed === false ? false : true
+        };
+      });
 
       setMarkups([...newMarkups, ...markups]);
     } catch (e) {
@@ -191,15 +200,21 @@ const Markup = ({
       .patch(
         `${import.meta.env.VITE_REACT_API_URL}/markups/update`,
         {
-          description: description,
-          pourcentage: percentage,
-          id: markup.id
+          markups: [
+            {
+              description: description,
+              pourcentage: percentage,
+              id: markup.id,
+              end_user_id: markup.end_user_id
+            }
+          ]
+
           //start_date: isFixed ? null : startDate ? format(startDate, 'yyyy-MM-dd') : null,
           //end_date: isFixed ? null : endDate ? format(endDate, 'yyyy-MM-dd') : null
         },
         {
           headers: {
-            Authorization: 'Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75'
+            Authorization: `Bearer ${user}`
           }
         }
       )
@@ -234,7 +249,7 @@ const Markup = ({
         },
 
         headers: {
-          Authorization: `Bearer 14|oZVlGgeRq3B0wR7grDn9QfxL6jiNwMS29LHxfE62f994cf75`
+          Authorization: `Bearer ${user}`
         }
       })
       .then((res) => {
@@ -249,7 +264,7 @@ const Markup = ({
     <TableRow>
       <TableCell>{markup?.category}</TableCell>
       <TableCell>{markup?.brand}</TableCell>
-      <TableCell>{markup?.end_user_id}</TableCell>
+      <TableCell>{markup?.enduser?.name}</TableCell>
       <TableCell>{markup?.pourcentage}%</TableCell>
       <TableCell>{markup?.start_date}</TableCell>
       <TableCell>{markup?.end_date}</TableCell>
@@ -258,13 +273,13 @@ const Markup = ({
       <TableCell>
         <div className=" flex gap-3 text-gray-700">
           <Dialog>
-            <DialogTrigger >
-              <Copy  className="cursor-pointer" size={22} />
+            <DialogTrigger>
+              <Copy className="cursor-pointer" size={22} />
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>
-                  Copy the markup {" "} 
+                  Copy the markup{' '}
                   {markup?.category
                     ? `Category : ${markup?.category}`
                     : markup?.brand
@@ -312,16 +327,14 @@ const Markup = ({
                 />
               </DialogDescription>
               <DialogFooter>
-              <Button
-                //onClick={console.log(format(startDate, 'dd/MM/yyyy') )}
-                disabled={loadingSubmit}
-                onClick={handleCopyMarkup}
-              >
-                Copy markup
-              </Button>
-            </DialogFooter>
+                <Button
+                  //onClick={console.log(format(startDate, 'dd/MM/yyyy') )}
+                  disabled={loadingSubmit}
+                  onClick={handleCopyMarkup}>
+                  Copy markup
+                </Button>
+              </DialogFooter>
             </DialogContent>
-            
           </Dialog>
           <Dialog>
             <DialogTrigger>
