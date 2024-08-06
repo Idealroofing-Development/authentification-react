@@ -85,7 +85,9 @@ const Cart = () => {
   const [loadingSaveCart, setLoadingSaveCart] = useState(false);
 
   const [loadingOrder, setLoadingOrder] = useState(false);
-  
+
+  const [poNumber, setPoNumber] = useState(null);
+
   const navigate = useNavigate();
 
   const orderCart = async () => {
@@ -97,7 +99,7 @@ const Cart = () => {
           ? selectedAddress?.label === 'My address'
             ? {
                 cart_id: cartInfos?.id,
-                ship_id: selectedAddress?.ship_id ? selectedAddress?.ship_id : "",
+                ship_id: selectedAddress?.ship_id ? selectedAddress?.ship_id : '',
                 OTSContact: '',
                 OTSName: '',
                 OTSAddr1: '',
@@ -107,7 +109,8 @@ const Cart = () => {
                 OTSProv: '',
                 OTSZip: '',
                 OTSCountry: '',
-                useOTS: false
+                useOTS: false,
+                poNum: poNumber,
               }
             : {
                 cart_id: cartInfos?.id,
@@ -121,7 +124,8 @@ const Cart = () => {
                 OTSProv: selectedAddress?.state,
                 OTSZip: selectedAddress?.zip,
                 OTSCountry: selectedAddress?.country,
-                useOTS: true
+                useOTS: true,
+                poNum: poNumber,
               }
           : {
               cart_id: cartInfos?.id,
@@ -135,7 +139,8 @@ const Cart = () => {
               OTSProv: customAddressValues?.state,
               OTSZip: customAddressValues?.zip,
               OTSCountry: customAddressValues?.country,
-              useOTS: true
+              useOTS: true,
+              poNum: poNumber,
             },
 
         {
@@ -271,7 +276,8 @@ const Cart = () => {
                 OTSProv: '',
                 OTSZip: '',
                 OTSCountry: '',
-                useOTS: false
+                useOTS: false,
+                poNum: poNumber,
               }
             : {
                 //cart_id: Number(cartInfos?.id),
@@ -285,7 +291,8 @@ const Cart = () => {
                 OTSProv: selectedAddress?.state,
                 OTSZip: selectedAddress?.zip,
                 OTSCountry: selectedAddress?.country,
-                useOTS: true
+                useOTS: true,
+                poNum: poNumber,
               }
           : {
               //cart_id: Number(cartInfos?.id),
@@ -299,7 +306,8 @@ const Cart = () => {
               OTSProv: customAddressValues?.state,
               OTSZip: customAddressValues?.zip,
               OTSCountry: customAddressValues?.country,
-              useOTS: true
+              useOTS: true,
+              poNum: poNumber,
             },
 
         {
@@ -328,6 +336,7 @@ const Cart = () => {
   const getAddresses = async () => {
     setLoadingAddresses(true);
     setAddresses([]);
+    setPoNumber(null);
     try {
       const res = await axios.get(`${import.meta.env.VITE_REACT_API_URL}/cart/addresses`, {
         headers: {
@@ -454,15 +463,15 @@ const Cart = () => {
 
   function parseProductVariables(input) {
     if (!input) return {};
-  
+
     const allowedProperties = ['A', 'B', 'C', 'P1', 'P2', 'X', 'Y'];
     const result = {};
     const parts = input.split(' ');
-  
+
     let index = 0;
-  
+
     // Check if the first part is "Louv:"
-    if (parts[index] && parts[index].startsWith("Louv:")) {
+    if (parts[index] && parts[index].startsWith('Louv:')) {
       index++; // Move to the next part
       // Check if the next part is the number (e.g., "4:")
       if (parts[index] && parts[index].includes(':')) {
@@ -475,7 +484,7 @@ const Cart = () => {
         }
       }
     }
-  
+
     // Extract the remaining key-value pairs (A=8", B=2", etc.)
     parts.slice(index).forEach((part) => {
       const [key, value] = part.split('=');
@@ -483,12 +492,9 @@ const Cart = () => {
         result[key] = parseFloat(value.replace('"', ''));
       }
     });
-  
+
     return result;
   }
-  
-
-  
 
   useEffect(() => {
     const getClient = async () => {
@@ -649,29 +655,29 @@ const Cart = () => {
                             </DialogHeader>
                           </DialogContent>
                         </Dialog>
-                        <Dialog>
+                        <DialogSmall>
                           <DialogTrigger onClick={() => setIdToDelete(item?.line?.id)}>
                             <Trash size={22} />
                           </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Delete Line</DialogTitle>
-                            </DialogHeader>
+                          <DialogContentSmall>
+                            <DialogHeaderSmall>
+                              <DialogTitleSmall>Delete Line</DialogTitleSmall>
+                            </DialogHeaderSmall>
                             <DialogDescription>
                               Are you sure you want to delete this line? This action cannot be
                               undone. This will permanently delete this line.
                             </DialogDescription>
 
-                            <DialogFooter>
+                            <DialogFooterSmall>
                               <Button
                                 onClick={() => deleteItem(idToDelete)}
                                 disabled={loadingDelete}
                                 className="bg-red-500 text-white hover:bg-red-500/90">
                                 {loadingDelete ? 'Deleting line...' : 'Delete'}
                               </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
+                            </DialogFooterSmall>
+                          </DialogContentSmall>
+                        </DialogSmall>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -699,7 +705,7 @@ const Cart = () => {
 
               <div className="border-b-2 border-black flex flex-col gap-8 py-8">
                 <div className="flex justify-between items-center">
-                  <p className='font-bold'>Subtotal : </p>
+                  <p className="font-bold">Subtotal : </p>
                   <p>${subTotal}</p>
                 </div>
 
@@ -773,6 +779,14 @@ const Cart = () => {
                       </DialogDescriptionSmall>
                     ) : (
                       <DialogDescriptionSmall className="flex flex-col gap-2">
+                        <div className="mb-2">
+                          <label>PO Number:</label>
+                          <Input
+                            className="mt-1"
+                            value={poNumber}
+                            onChange={(e) => setPoNumber(e.target.value)}
+                          />
+                        </div>
                         {addresses?.map((address) => (
                           <div
                             onClick={() => setSelectedAddress(address)}
@@ -858,6 +872,14 @@ const Cart = () => {
                       </DialogDescriptionSmall>
                     ) : (
                       <DialogDescriptionSmall className="flex flex-col gap-2">
+                        <div className="mb-2">
+                          <label>PO Number:</label>
+                          <Input
+                            className="mt-1"
+                            value={poNumber}
+                            onChange={(e) => setPoNumber(e.target.value)}
+                          />
+                        </div>
                         {addresses?.map((address) => (
                           <div
                             onClick={() => setSelectedAddress(address)}

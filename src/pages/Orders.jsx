@@ -70,7 +70,7 @@ const Orders = () => {
             <TableHeader className="capitalize">
               <TableRow>
                 <TableHead>Order Number</TableHead>
-                <TableHead>PO Name</TableHead>
+                <TableHead>PO Number</TableHead>
 
                 <TableHead>Creation Date</TableHead>
                 <TableHead>Net sale</TableHead>

@@ -41,19 +41,9 @@ const Quotes = () => {
         `${import.meta.env.VITE_REACT_API_URL}/orders/create`,
 
         {
-          cart_id: '',
           quote_number: quote?.number,
-          ship_id: quote?.ship_id ? quote?.ship_id : '',
-          OTSContact: quote?.phone,
-          OTSName: quote?.name,
-          OTSAddr1: quote?.address,
-          OTSAddr2: '',
-          OTSAddr3: '',
-          OTSCity: quote?.city,
-          OTSProv: quote?.state,
-          OTSZip: quote?.zip,
-          OTSCountry: quote?.country,
-          useOTS: quote?.ship_id ? true : false
+
+          useOTS: false
         },
         {
           headers: {
@@ -83,12 +73,12 @@ const Quotes = () => {
           Authorization: `Bearer ${user}`
         },
 
-        data: { quote_id: id }
+        data: { quote_number: id }
       })
       .then(() => {
         setLoadingDelete(false);
         toast.success('Quote deleted');
-        setQuotes(quotes.filter((q) => q.id !== id));
+        setQuotes(quotes.filter((q) => q?.quote.number !== id));
         setIdToDelete(null);
       })
       .catch((e) => {
@@ -149,6 +139,7 @@ const Quotes = () => {
                 <TableHead>Quote Number</TableHead>
 
                 <TableHead>Creation Date</TableHead>
+                <TableHead>OTS Address</TableHead>
                 <TableHead>Net sale</TableHead>
                 <TableHead>Tax amount</TableHead>
                 <TableHead>Total</TableHead>
@@ -161,6 +152,18 @@ const Quotes = () => {
                 <TableRow key={quote?.quote?.number}>
                   <TableCell>{quote?.quote?.number}</TableCell>
                   <TableCell>{formatDate(quote?.quote?.created_at)}</TableCell>
+                  <TableCell className="max-w-[200px] whitespace-normal">
+                    {[
+                      quote?.quote?.OTSAddr1,
+                      quote?.quote?.OTSCity,
+                      quote?.quote?.OTSZip,
+                      quote?.quote?.OTSProv,
+                      quote?.quote?.OTSCountry
+                    ]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </TableCell>
+
                   <TableCell>{quote?.quote?.net_sale}</TableCell>
                   <TableCell>{quote?.quote?.tax_amount}</TableCell>
                   <TableCell>{quote?.quote?.total_sale}</TableCell>
@@ -192,7 +195,9 @@ const Quotes = () => {
 
                     <Button
                       disabled={loadingOrder == quote?.quote?.number}
-                      onClick={() => (loadingOrder == quote?.quote?.number ? null : orderQuote(quote?.quote))}
+                      onClick={() =>
+                        loadingOrder == quote?.quote?.number ? null : orderQuote(quote?.quote)
+                      }
                       className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary ">
                       {loadingOrder == quote?.quote?.number ? 'Creating order...' : 'Create order'}
                     </Button>
