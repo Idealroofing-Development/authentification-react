@@ -50,6 +50,7 @@ import {
 import EditPopup from '@/components/Cart/EditPopup';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/context/auth-context';
+import { useNavigate } from 'react-router-dom';
 
 const Cart = () => {
   const [cart, setCart] = useState(null);
@@ -84,6 +85,8 @@ const Cart = () => {
   const [loadingSaveCart, setLoadingSaveCart] = useState(false);
 
   const [loadingOrder, setLoadingOrder] = useState(false);
+  
+  const navigate = useNavigate();
 
   const orderCart = async () => {
     setLoadingOrder(true);
@@ -144,6 +147,7 @@ const Cart = () => {
       .then((res) => {
         setLoadingOrder(false);
         toast.success('Order created successfully');
+        navigate('/orders');
       })
       .catch((e) => {
         setLoadingOrder(false);
@@ -168,6 +172,7 @@ const Cart = () => {
       .then(() => {
         setLoadingSaveCart(false);
         toast.success('Cart saved successfully');
+        navigate('/carts');
       })
       .catch((e) => {
         setLoadingSaveCart(false);
@@ -306,6 +311,7 @@ const Cart = () => {
       .then((res) => {
         setLoadingCreatingQuote(false);
         toast.success('Quote created successfully');
+        navigate('/quotes');
       })
       .catch((e) => {
         setLoadingCreatingQuote(false);

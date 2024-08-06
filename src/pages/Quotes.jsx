@@ -32,22 +32,59 @@ const Quotes = () => {
   const [idToDelete, setIdToDelete] = useState(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
 
-  const {user} = useAuth()
+  const [loadingOrder, setLoadingOrder] = useState(null);
+
+  const orderQuote = async (quote) => {
+    setLoadingOrder(quote?.number);
+    await axios
+      .post(
+        `${import.meta.env.VITE_REACT_API_URL}/orders/create`,
+
+        {
+          cart_id: '',
+          quote_number: quote?.number,
+          ship_id: quote?.ship_id ? quote?.ship_id : '',
+          OTSContact: quote?.phone,
+          OTSName: quote?.name,
+          OTSAddr1: quote?.address,
+          OTSAddr2: '',
+          OTSAddr3: '',
+          OTSCity: quote?.city,
+          OTSProv: quote?.state,
+          OTSZip: quote?.zip,
+          OTSCountry: quote?.country,
+          useOTS: quote?.ship_id ? true : false
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${user}`
+          }
+        }
+      )
+      .then((res) => {
+        setLoadingOrder(null);
+        toast.success('Order created successfully');
+        //navigate('/orders');
+      })
+      .catch((e) => {
+        setLoadingOrder(null);
+        toast.error('Error creating order');
+      });
+  };
+
+  const { user } = useAuth();
 
   const deleteQuote = async (id) => {
     setLoadingDelete(true);
     await axios
-      .delete(
-        `${import.meta.env.VITE_REACT_API_URL}/quote/delete/`,
-        {
-            // Correctly pass the body here
-          headers: {
-            Authorization: `Bearer ${user}`
-          },
+      .delete(`${import.meta.env.VITE_REACT_API_URL}/quote/delete/`, {
+        // Correctly pass the body here
+        headers: {
+          Authorization: `Bearer ${user}`
+        },
 
-          data: { quote_id: id },
-        }
-      )
+        data: { quote_id: id }
+      })
       .then(() => {
         setLoadingDelete(false);
         toast.success('Quote deleted');
@@ -60,7 +97,6 @@ const Quotes = () => {
       });
   };
 
-  
   useEffect(() => {
     const getQuotes = async () => {
       setLoadingQuotes(true);
@@ -81,6 +117,15 @@ const Quotes = () => {
     };
     getQuotes();
   }, []);
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+  };
   return (
     <div className="wrapper">
       <h3 className="capitalize text-xl font-bold">My quotes</h3>
@@ -102,15 +147,11 @@ const Quotes = () => {
             <TableHeader className="capitalize">
               <TableRow>
                 <TableHead>Quote Number</TableHead>
-                <TableHead>Project Name</TableHead>
-                <TableHead>Created By</TableHead>
-                <TableHead>Last Accessed</TableHead>
-                <TableHead>Customer Info</TableHead>
+
                 <TableHead>Creation Date</TableHead>
-                <TableHead>Lines</TableHead>
-                <TableHead>Delivery Address</TableHead>
+                <TableHead>Net sale</TableHead>
+                <TableHead>Tax amount</TableHead>
                 <TableHead>Total</TableHead>
-                <TableHead>Checkout</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -119,16 +160,12 @@ const Quotes = () => {
               {quotes?.map((quote) => (
                 <TableRow key={quote?.quote?.number}>
                   <TableCell>{quote?.quote?.number}</TableCell>
-                  <TableCell>Test PN</TableCell>
-                  <TableCell>Macha L</TableCell>
-                  <TableCell>Macha L</TableCell>
-                  <TableCell>Contractor A</TableCell>
-                  <TableCell>2024-04-17</TableCell>
-                  <TableCell>5</TableCell>
-                  <TableCell>125 Maple St</TableCell>
-                  <TableCell>$3562.85</TableCell>
-                  <TableCell></TableCell>
-                  <TableCell>
+                  <TableCell>{formatDate(quote?.quote?.created_at)}</TableCell>
+                  <TableCell>{quote?.quote?.net_sale}</TableCell>
+                  <TableCell>{quote?.quote?.tax_amount}</TableCell>
+                  <TableCell>{quote?.quote?.total_sale}</TableCell>
+
+                  <TableCell className="flex gap-2">
                     <Dialog>
                       <DialogTrigger onClick={() => setIdToDelete(quote?.quote?.number)}>
                         <Trash size={22} />
@@ -152,6 +189,13 @@ const Quotes = () => {
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
+
+                    <Button
+                      disabled={loadingOrder == quote?.quote?.number}
+                      onClick={() => (loadingOrder == quote?.quote?.number ? null : orderQuote(quote?.quote))}
+                      className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary ">
+                      {loadingOrder == quote?.quote?.number ? 'Creating order...' : 'Create order'}
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

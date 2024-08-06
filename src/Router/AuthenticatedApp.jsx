@@ -42,6 +42,7 @@ import { UserInfoContext } from '@/context/userInfosContext.jsx';
 import { useContext } from 'react';
 import SavedCarts from '@/pages/SavedCarts.jsx';
 import SingleCart from '@/pages/SingleCart.jsx';
+import { useState } from 'react';
 
 function AppRoutes() {
   return (
@@ -64,12 +65,10 @@ function AppRoutes() {
 export default function AuthenticatedApp() {
   const { user, logout } = useAuth();
   const queryClient = new QueryClient();
-  
+
   const { userInfos } = useContext(UserInfoContext);
 
-  useEffect(() => {
-    console.log("user", user)
-  })
+  
   return (
     <div className="min-h-screen flex flex-col">
       <ToastContainer />
@@ -96,7 +95,7 @@ export default function AuthenticatedApp() {
                     <DropdownMenuLabel>Preferences</DropdownMenuLabel>
                   </Link>
                   <DropdownMenuSeparator />
-                  <div className='cursor-pointer' onClick={logout}>
+                  <div className="cursor-pointer" onClick={logout}>
                     <DropdownMenuLabel>Logout</DropdownMenuLabel>
                   </div>
                 </DropdownMenuContent>
@@ -150,7 +149,7 @@ export default function AuthenticatedApp() {
         </QueryClientProvider>
       </div>
       <div>
-        <Footer/>
+        <Footer />
       </div>
     </div>
   );
