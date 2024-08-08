@@ -12,9 +12,9 @@ function App() {
   return (
     <React.Suspense fallback={<Spiner />}>
       {user ? (
-        <UserInfoProvider>
+        
           <AuthenticatedApp />
-        </UserInfoProvider>
+        
       ) : (
         <UnauthenticatedApp />
       )}

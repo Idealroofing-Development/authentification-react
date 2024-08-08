@@ -11,8 +11,9 @@ async function getToken() {
 
 function handleUserResponse(response) {
   //il faut mettre console.log de response pour faire la déstructuration (connaitre quoi distructurer)
-  window.localStorage.setItem(localStorageKey, response.token);
   window.localStorage.setItem('userInfos', JSON.stringify(response.user));
+  window.localStorage.setItem(localStorageKey, response.token);
+  
 
   return response;
 }

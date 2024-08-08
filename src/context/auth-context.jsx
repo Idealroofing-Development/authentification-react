@@ -41,7 +41,7 @@ function AuthProvider(props) {
 
   const login = React.useCallback(
     async (form) => {
-      await auth.login(form).then((user) => setData(user));
+      await auth.login(form).then((user) => {setData(user?.token)});
     },
     [setData]
   );

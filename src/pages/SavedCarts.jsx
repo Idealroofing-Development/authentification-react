@@ -25,14 +25,14 @@ import {
 } from '@/components/ui/dialog';
 
 import {
-    Dialog as DialogBig,
-    DialogContent as DialogContentBig,
-    DialogDescription as DialogDescriptionBig,
-    DialogFooter as DialogFooterBig,
-    DialogHeader as DialogHeaderBig,
-    DialogTitle as DialogTitleBig,
-    DialogTrigger as DialogTriggerBig
-  } from '@/components/ui/fullWdialgog';
+  Dialog as DialogBig,
+  DialogContent as DialogContentBig,
+  DialogDescription as DialogDescriptionBig,
+  DialogFooter as DialogFooterBig,
+  DialogHeader as DialogHeaderBig,
+  DialogTitle as DialogTitleBig,
+  DialogTrigger as DialogTriggerBig
+} from '@/components/ui/fullWdialgog';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
 import { Link } from 'react-router-dom';
@@ -44,7 +44,7 @@ const SavedCarts = () => {
   const [idToDelete, setIdToDelete] = useState(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
 
-  const [selectedCart, setSelectedCart] = useState(null)
+  const [selectedCart, setSelectedCart] = useState(null);
 
   const { user } = useAuth();
 
@@ -112,6 +112,7 @@ const SavedCarts = () => {
             <TableHeader className="capitalize">
               <TableRow>
                 <TableHead>Cart ID</TableHead>
+                <TableHead>Cart Name</TableHead>
                 <TableHead>Client ID</TableHead>
                 <TableHead>Lines number</TableHead>
 
@@ -123,6 +124,7 @@ const SavedCarts = () => {
               {carts?.map((cart) => (
                 <TableRow key={cart?.id}>
                   <TableCell>{cart?.id}</TableCell>
+                  <TableCell>{cart?.name}</TableCell>
                   <TableCell>{cart?.end_user_id}</TableCell>
                   <TableCell>{cart?.lines?.length}</TableCell>
 
@@ -150,15 +152,16 @@ const SavedCarts = () => {
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>*/}
-
-                    <DialogBig>
-                      <DialogTriggerBig onClick={() => setSelectedCart(cart)}>
-                        <Eye size={22} />
-                      </DialogTriggerBig>
-                      <DialogContentBig className='max-h-[600px] overflow-auto'>
-                        <CartLinesPopup cart={cart}/>
-                      </DialogContentBig>
-                    </DialogBig>
+                    {cart?.lines?.length ? (
+                      <DialogBig>
+                        <DialogTriggerBig onClick={() => setSelectedCart(cart)}>
+                          <Eye size={22} />
+                        </DialogTriggerBig>
+                        <DialogContentBig className="max-h-[600px] overflow-auto">
+                          <CartLinesPopup cart={cart} />
+                        </DialogContentBig>
+                      </DialogBig>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ))}

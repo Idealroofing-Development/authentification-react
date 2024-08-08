@@ -51,6 +51,8 @@ import EditPopup from '@/components/Cart/EditPopup';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/context/auth-context';
 import { useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { UserInfoContext } from '@/context/userInfosContext';
 
 const Cart = () => {
   const [cart, setCart] = useState(null);
@@ -87,8 +89,12 @@ const Cart = () => {
   const [loadingOrder, setLoadingOrder] = useState(false);
 
   const [poNumber, setPoNumber] = useState(null);
+  const [quoteName, setQuoteName] = useState(null);
+  const [cartName, setCartName] = useState(null);
 
   const navigate = useNavigate();
+
+ 
 
   const orderCart = async () => {
     setLoadingOrder(true);
@@ -110,7 +116,7 @@ const Cart = () => {
                 OTSZip: '',
                 OTSCountry: '',
                 useOTS: false,
-                poNum: poNumber,
+                poNum: poNumber
               }
             : {
                 cart_id: cartInfos?.id,
@@ -125,7 +131,7 @@ const Cart = () => {
                 OTSZip: selectedAddress?.zip,
                 OTSCountry: selectedAddress?.country,
                 useOTS: true,
-                poNum: poNumber,
+                poNum: poNumber
               }
           : {
               cart_id: cartInfos?.id,
@@ -140,7 +146,7 @@ const Cart = () => {
               OTSZip: customAddressValues?.zip,
               OTSCountry: customAddressValues?.country,
               useOTS: true,
-              poNum: poNumber,
+              poNum: poNumber
             },
 
         {
@@ -161,13 +167,31 @@ const Cart = () => {
   };
 
   const { user } = useAuth();
+  const { userInfos } = useContext(UserInfoContext);
+
+  useEffect(() => {
+    if (user){
+      console.log("token", user)
+    }
+  }, [user])
+
+  const formatDate = (date) => {
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0'); // January is 0!
+    const yyyy = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${dd}/${mm}/${yyyy} ${hours}:${minutes}`;
+  };
 
   const saveCart = async () => {
     setLoadingSaveCart(true);
     await axios
       .post(
         `${import.meta.env.VITE_REACT_API_URL}/cart/save`,
-        {},
+        {
+          name: cartName || `${formatDate(new Date())} ${userInfos?.first_name} ${userInfos?.last_name}`
+        },
         {
           headers: {
             Authorization: `Bearer ${user}`
@@ -175,6 +199,7 @@ const Cart = () => {
         }
       )
       .then(() => {
+        setCartName(null);
         setLoadingSaveCart(false);
         toast.success('Cart saved successfully');
         navigate('/carts');
@@ -277,7 +302,7 @@ const Cart = () => {
                 OTSZip: '',
                 OTSCountry: '',
                 useOTS: false,
-                poNum: poNumber,
+                name: quoteName || `${formatDate(new Date())} ${userInfos?.first_name} ${userInfos?.last_name}`
               }
             : {
                 //cart_id: Number(cartInfos?.id),
@@ -292,7 +317,7 @@ const Cart = () => {
                 OTSZip: selectedAddress?.zip,
                 OTSCountry: selectedAddress?.country,
                 useOTS: true,
-                poNum: poNumber,
+                name: quoteName || `${formatDate(new Date())} ${userInfos?.first_name} ${userInfos?.last_name}`
               }
           : {
               //cart_id: Number(cartInfos?.id),
@@ -307,7 +332,7 @@ const Cart = () => {
               OTSZip: customAddressValues?.zip,
               OTSCountry: customAddressValues?.country,
               useOTS: true,
-              poNum: poNumber,
+              name: quoteName || `${formatDate(new Date())} ${userInfos?.first_name} ${userInfos?.last_name}`
             },
 
         {
@@ -337,6 +362,7 @@ const Cart = () => {
     setLoadingAddresses(true);
     setAddresses([]);
     setPoNumber(null);
+    setQuoteName(null);
     try {
       const res = await axios.get(`${import.meta.env.VITE_REACT_API_URL}/cart/addresses`, {
         headers: {
@@ -536,9 +562,35 @@ const Cart = () => {
           <div className="flex lg:items-center lg:justify-between lg:flex-row flex-col gap-4">
             <div className="flex items-center gap-4 justify-between lg:justify-normal">
               <h3 className="capitalize text-xl font-bold">Your shopping cart</h3>
-              <Button disabled={loadingSaveCart} onClick={loadingSaveCart ? null : saveCart}>
-                {loadingSaveCart ? 'Saving...' : 'Save'}
-              </Button>
+              <DialogSmall>
+                <DialogTrigger>
+                  <Button className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary">
+                    Save cart
+                  </Button>
+                </DialogTrigger>
+                <DialogContentSmall>
+                  <DialogHeaderSmall>
+                    <DialogTitleSmall>Save cart </DialogTitleSmall>
+                  </DialogHeaderSmall>
+
+                  <DialogDescriptionSmall className="flex flex-col gap-2">
+                    <div className="mb-2">
+                      <label>Name:</label>
+                      <Input
+                        className="mt-1"
+                        value={cartName}
+                        onChange={(e) => setCartName(e.target.value)}
+                      />
+                    </div>
+                  </DialogDescriptionSmall>
+
+                  <DialogFooterSmall>
+                    <Button className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary" disabled={loadingSaveCart} onClick={loadingSaveCart ? null : saveCart}>
+                      {loadingSaveCart ? 'Saving cart...' : 'Save cart'}
+                    </Button>
+                  </DialogFooterSmall>
+                </DialogContentSmall>
+              </DialogSmall>
             </div>
             <div>
               <Button className="text-lg font-semibold" size="lg">
@@ -627,8 +679,10 @@ const Cart = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className=" text-lg">
-                        <p>${item?.line?.unity_price}</p>
-                        <p className="text-gris-claire">${item?.line?.unity_price}</p>
+                        <p>${Number(item?.line?.unity_price)?.toFixed(4)}</p>
+                        <p className="text-gris-claire">
+                          ${Number(item?.line?.unity_price)?.toFixed(4)}
+                        </p>
                       </div>
                     </TableCell>
 
@@ -689,12 +743,12 @@ const Cart = () => {
               <div className="border-b-2 border-black flex flex-col gap-8 pb-8">
                 <div className="flex justify-between items-center">
                   <p>Misc Charges : </p>
-                  <p>${miscCharges}</p>
+                  <p>${Number(miscCharges)?.toFixed(2)}</p>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <p>Lines Total : </p>
-                  <p>${linesTotal}</p>
+                  <p>${Number(linesTotal)?.toFixed(2)}</p>
                 </div>
 
                 {/*<div className="flex justify-between items-center">
@@ -706,7 +760,7 @@ const Cart = () => {
               <div className="border-b-2 border-black flex flex-col gap-8 py-8">
                 <div className="flex justify-between items-center">
                   <p className="font-bold">Subtotal : </p>
-                  <p>${subTotal}</p>
+                  <p>${Number(subTotal)?.toFixed(2)}</p>
                 </div>
 
                 <div className="flex justify-end items-center">
@@ -780,11 +834,11 @@ const Cart = () => {
                     ) : (
                       <DialogDescriptionSmall className="flex flex-col gap-2">
                         <div className="mb-2">
-                          <label>PO Number:</label>
+                          <label>Name:</label>
                           <Input
                             className="mt-1"
-                            value={poNumber}
-                            onChange={(e) => setPoNumber(e.target.value)}
+                            value={quoteName}
+                            onChange={(e) => setQuoteName(e.target.value)}
                           />
                         </div>
                         {addresses?.map((address) => (
@@ -872,8 +926,8 @@ const Cart = () => {
                       </DialogDescriptionSmall>
                     ) : (
                       <DialogDescriptionSmall className="flex flex-col gap-2">
-                        <div className="mb-2">
-                          <label>PO Number:</label>
+                        <div className="mb-2 text-black">
+                          <label>PO Number: <span className='text-xs italic text-gray-500'>{"(required)"}</span></label>
                           <Input
                             className="mt-1"
                             value={poNumber}
@@ -931,7 +985,7 @@ const Cart = () => {
 
                     <DialogFooterSmall>
                       <Button
-                        disabled={loadingOrder}
+                        disabled={loadingOrder || !poNumber}
                         onClick={loadingOrder ? null : orderCart}
                         className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary">
                         {loadingOrder ? 'Creating order...' : 'Create order'}

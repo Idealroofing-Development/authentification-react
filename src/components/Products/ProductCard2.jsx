@@ -46,7 +46,7 @@ const ProductCard2 = ({ product }) => {
   const [lengthFT, setLengthFT] = useState('');
   const [lengthMM, setLengthMM] = useState('');
 
-  const {user} = useAuth()
+  const { user } = useAuth();
 
   const XYValues = [
     { label: 'Laurentian 5/8"', value: '5/8' },
@@ -207,8 +207,8 @@ const ProductCard2 = ({ product }) => {
       );
     });
 
-    setAvailableWidths(Array.from(new Set(filteredParts.map((part) => Number(part.width)))));
-    if (selectedWidth && !filteredParts.some((part) => part.length === selectedWidth)) {
+    setAvailableWidths(Array.from(new Set(filteredParts.map((part) => part.width))));
+    if (selectedWidth && !filteredParts.some((part) => part.width === selectedWidth)) {
       setAvailableWidths((prev) => [...prev, selectedWidth]);
     }
   }, [
@@ -383,6 +383,7 @@ const ProductCard2 = ({ product }) => {
       const isColorMatch = selectedColor ? part.color === selectedColor : true;
       const isSize1Match = part.size1 ? part.size1 === selectedSize1 : true;
       const isSize2Match = part.size2 ? part.size2 === selectedSize2 : true;
+      const isWidthMatch = part.width && !equation ? part.width === selectedWidth : true;
       const isSubBrandMatch = part.sub_brand ? part.sub_brand === selectedSubBrand : true;
       const partnumPrefix = part.partnum.split('-')[0];
       const isPrefixMatch =
@@ -396,6 +397,7 @@ const ProductCard2 = ({ product }) => {
         isSize1Match &&
         isSize2Match &&
         isSubBrandMatch &&
+        isWidthMatch &&
         isPrefixMatch
       );
     });
@@ -403,11 +405,13 @@ const ProductCard2 = ({ product }) => {
     const partNums = matchingParts.map((part) => part.partnum);
 
     setAvailablePartNums(partNums);
+
     console.log('partNums', partNums);
   };
 
   useEffect(() => {
     if (availablePartNums) selectPartNum(availablePartNums);
+    
   }, [availablePartNums]);
 
   function selectPartNum(partNums) {
@@ -526,9 +530,9 @@ const ProductCard2 = ({ product }) => {
       .join(' ');
 
     const length =
-      convertToInches(lengthFT + 'ft') +
-      convertToInches(lengthMM + 'mm') +
-      convertToInches(lengthInch);
+      convertToInches(lengthFT || 0 + 'ft') +
+      convertToInches(lengthMM || 0 + 'mm') +
+      convertToInches(lengthInch || 0);
 
     await axios
       .post(
@@ -552,7 +556,13 @@ const ProductCard2 = ({ product }) => {
               ? `${selectedLength + `"`}`
               : length
                 ? //`${length}${unit === 'MM' ? 'mm' : unit === 'FT' ? 'ft' : '"'}`
-                  [lengthFT + 'ft', lengthInch + '"', lengthMM + 'mm'].filter(Boolean).join(' ')
+                  [
+                    lengthFT ? lengthFT + 'ft' : '',
+                    lengthInch ? lengthInch + '"' : '',
+                    lengthMM ? lengthMM + 'mm' : ''
+                  ]
+                    ?.filter(Boolean)
+                    ?.join(' ')
                 : `1`,
 
             product_calculated_Len: selectedLength
@@ -581,7 +591,7 @@ const ProductCard2 = ({ product }) => {
           pricing: {
             PartNum: selectedPartNum,
             //CustID: userInfos?.customer_id,
-            CustID:"210745",
+            CustID: '210745',
             Currency: 'CAD',
             Qty: product?.product?.options_list?.QTYFT
               ? selectedLength
@@ -636,13 +646,19 @@ const ProductCard2 = ({ product }) => {
       .catch((e) => {
         setLoadingAddToCart(false);
         setSelectedPartNum(null);
-        console.log(e);
+        toast.error('Erro adding product to cart');
       });
   };
 
   useEffect(() => {
     if (selectedPartNum) addToCart();
   }, [selectedPartNum]);
+
+  useEffect(() => {
+    if (product?.parts?.find((p) => p.color_enc === 'No Color')) {
+      setSelectedColor(product?.parts?.find((p) => p.color_enc === 'No Color')?.color);
+    }
+  }, [product]);
 
   return (
     <div className="flex flex-col justify-center w-full productCard">
@@ -763,7 +779,7 @@ const ProductCard2 = ({ product }) => {
                   </label>
                 )}
 
-                {/*{product?.parts[0]?.width && (
+                {product?.parts[0]?.width && !equation ? (
                   <label className="flex gap-1 items-center">
                     <span className="w-[100px]">Width:</span>
                     <select
@@ -778,7 +794,7 @@ const ProductCard2 = ({ product }) => {
                       ))}
                     </select>
                   </label>
-                )}*/}
+                ) : null}
                 {product?.parts[0]?.color && (
                   <Popover>
                     <TooltipProvider>
@@ -805,7 +821,7 @@ const ProductCard2 = ({ product }) => {
                         <TooltipContent>
                           <p>
                             {product?.parts?.find((p) => p.color === selectedColor)?.color_enc ||
-                              'No color'}
+                              'No color selected'}
                           </p>
                         </TooltipContent>
                       </Tooltip>

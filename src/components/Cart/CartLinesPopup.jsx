@@ -23,8 +23,9 @@ import { Button } from '../ui/button';
 import axios from 'axios';
 import { useAuth } from '@/context/auth-context';
 import { toast } from 'react-toastify';
+import { useEffect } from 'react';
 
-const CartLinesPopup = ({ cart }) => {
+const CartLinesPopup = ({ cart, forQuotes, forOrders }) => {
   const { user } = useAuth();
   const [selectedLines, setSeletedLines] = useState([]);
 
@@ -56,15 +57,15 @@ const CartLinesPopup = ({ cart }) => {
 
   function parseProductVariables(input) {
     if (!input) return {};
-  
+
     const allowedProperties = ['A', 'B', 'C', 'P1', 'P2', 'X', 'Y'];
     const result = {};
     const parts = input.split(' ');
-  
+
     let index = 0;
-  
+
     // Check if the first part is "Louv:"
-    if (parts[index] && parts[index].startsWith("Louv:")) {
+    if (parts[index] && parts[index].startsWith('Louv:')) {
       index++; // Move to the next part
       // Check if the next part is the number (e.g., "4:")
       if (parts[index] && parts[index].includes(':')) {
@@ -77,7 +78,7 @@ const CartLinesPopup = ({ cart }) => {
         }
       }
     }
-  
+
     // Extract the remaining key-value pairs (A=8", B=2", etc.)
     parts.slice(index).forEach((part) => {
       const [key, value] = part.split('=');
@@ -85,7 +86,7 @@ const CartLinesPopup = ({ cart }) => {
         result[key] = parseFloat(value.replace('"', ''));
       }
     });
-  
+
     return result;
   }
 
@@ -108,31 +109,55 @@ const CartLinesPopup = ({ cart }) => {
     }
   };
 
+  useEffect(() => {
+    console.log(cart)
+  },[cart])
+
   return (
     <>
       <DialogHeaderBig>
         <DialogTitleBig>
-          <div className="flex gap-4 justify-between items-center">
-            <div>Cart N° {cart?.id}</div>
-            <Button
-              onClick={loadingCopy ? null : copyLines}
-              disabled={loadingCopy}
-              className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary mr-4">
-              {loadingCopy ? 'Copying lines ...' : 'Copy lines'}
-            </Button>
-          </div>
+          <>
+            {forQuotes ? (
+              cart?.cart?.name ? (
+                <div>{cart?.cart?.name}</div>
+              ) : (
+                <div>Quote N° {cart?.cart?.id}</div>
+              )
+            ) : forOrders ? (
+              cart?.cart?.name ? (
+                <div>{cart?.cart?.name}</div>
+              ) : (
+                <div>Order N° {cart?.cart?.id}</div>
+              )
+            ) : (
+              <div className="flex gap-4 justify-between items-center">
+                {cart?.name ? <div>{cart?.name}</div> : <div>Cart N° {cart?.id}</div>}
+
+                <Button
+                  onClick={loadingCopy ? null : copyLines}
+                  disabled={loadingCopy}
+                  className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary mr-4">
+                  {loadingCopy ? 'Copying lines ...' : 'Copy lines'}
+                </Button>
+              </div>
+            )}
+          </>
         </DialogTitleBig>
 
         <Table className="whitespace-nowrap lg:w-[100%] w-full">
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[20px]">
-                <input
-                  onChange={handleSelectAll}
-                  checked={selectedLines?.length === cart?.lines?.length}
-                  type="checkbox"
-                />
-              </TableHead>
+              {forQuotes || forOrders ? null : (
+                <TableHead className="w-[20px]">
+                  <input
+                    onChange={handleSelectAll}
+                    checked={selectedLines?.length === cart?.lines?.length}
+                    type="checkbox"
+                  />
+                </TableHead>
+              )}
+
               <TableHead>Items</TableHead>
               <TableHead>QTY</TableHead>
               <TableHead>Option(s)</TableHead>
@@ -142,13 +167,16 @@ const CartLinesPopup = ({ cart }) => {
           <TableBody>
             {cart?.lines?.map((item, index) => (
               <TableRow key={index}>
-                <TableCell>
-                  <input
-                    onChange={() => handleSelectLine(item.id)}
-                    checked={selectedLines.includes(item.id)}
-                    type="checkbox"
-                  />
-                </TableCell>
+                {forQuotes || forOrders ? null : (
+                  <TableCell>
+                    <input
+                      onChange={() => handleSelectLine(item.id)}
+                      checked={selectedLines.includes(item.id)}
+                      type="checkbox"
+                    />
+                  </TableCell>
+                )}
+
                 <TableCell className="flex gap-2 min-w-max">
                   <img
                     src={

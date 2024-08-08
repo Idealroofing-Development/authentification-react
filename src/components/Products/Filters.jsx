@@ -42,7 +42,7 @@ const Filters = () => {
     <div className="flex items-center justify-between rounded-lg bg-gray-100 w-full px-4 py-2 mt-4 whitespace-nowrap gap-4 overflow-auto">
       {categories?.map((category) => (
         <div
-          onClick={() => handleFilter(category?.category?.name)}
+          onClick={() => handleFilter(category?.category?.epicor_category_name)}
           className="cursor-pointer text-md text-gray-500">
           {category?.category?.name}
         </div>

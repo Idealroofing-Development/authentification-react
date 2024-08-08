@@ -20,7 +20,7 @@ const EditPopup = ({ id, vars, setCart }) => {
 
   const { userInfos } = useContext(UserInfoContext);
 
-  const {user} = useAuth()
+  const { user } = useAuth();
 
   useEffect(() => {
     setLoading(true);
@@ -46,7 +46,7 @@ const EditPopup = ({ id, vars, setCart }) => {
           console.log(e);
         });
     };
-    
+
     getLine();
   }, [user]);
 
@@ -254,8 +254,8 @@ const EditPopup = ({ id, vars, setCart }) => {
       );
     });
 
-    setAvailableWidths(Array.from(new Set(filteredParts.map((part) => Number(part.width)))));
-    if (selectedWidth && !filteredParts.some((part) => part.length === selectedWidth)) {
+    setAvailableWidths(Array.from(new Set(filteredParts.map((part) => part.width))));
+    if (selectedWidth && !filteredParts.some((part) => part.width === selectedWidth)) {
       setAvailableWidths((prev) => [...prev, selectedWidth]);
     }
   }, [
@@ -430,6 +430,7 @@ const EditPopup = ({ id, vars, setCart }) => {
       const isColorMatch = selectedColor ? part.color === selectedColor : true;
       const isSize1Match = part.size1 ? part.size1 === selectedSize1 : true;
       const isSize2Match = part.size2 ? part.size2 === selectedSize2 : true;
+      const isWidthMatch = part.width && !equation ? part.width === selectedWidth : true;
       const isSubBrandMatch = part.sub_brand ? part.sub_brand === selectedSubBrand : true;
       const partnumPrefix = part.partnum.split('-')[0];
       const isPrefixMatch =
@@ -535,46 +536,7 @@ const EditPopup = ({ id, vars, setCart }) => {
     }
   }
 
-  const getPricing = async () => {
-    await axios
-      .post(
-        `${import.meta.env.VITE_REACT_EPICOR_API_URL}/GetPrice`,
-        {
-          PartNum: selectedPartNum,
-          //CustID: userInfos?.customer_id,
-          CustID:"210745",
-          Currency: 'CAD',
-          Qty: product?.product?.options_list?.QTYFT
-            ? selectedLength
-              ? (Number(selectedLength) * Number(quantity)) / 12
-              : (convertToInches(length) * Number(quantity)) / 12
-            : Number(quantity),
-
-          Length: selectedLength ? Number(selectedLength) : length ? convertToInches(length) : 1,
-          Options: product?.product?.options,
-          UOM: product?.product?.uom_default,
-          iFilm: 0,
-          iEmbossed: 0,
-          iBend: 0,
-          iNbOfBends: 0
-        },
-
-        {
-          headers: {
-            'x-api-key': import.meta.env.VITE_REACT_EPICOR_API_KEY,
-            Authorization: 'Basic V2VidXNlcjpteVBhc3MyMDIxIQ=='
-          }
-        }
-      )
-      .then((res) => {
-        console.log(res.data);
-        setSelectedPartNum(null);
-      })
-      .catch((e) => {
-        console.log(e);
-        setSelectedPartNum(null);
-      });
-  };
+  
 
   const addToCart = async () => {
     setLoadingAddToCart(true);
@@ -672,7 +634,7 @@ const EditPopup = ({ id, vars, setCart }) => {
           pricing: {
             PartNum: selectedPartNum,
             //CustID: userInfos?.customer_id,
-            CustID:"210745",
+            CustID: '210745',
             Currency: 'CAD',
             Qty: product?.product?.options_list?.QTYFT
               ? selectedLength
@@ -778,6 +740,7 @@ const EditPopup = ({ id, vars, setCart }) => {
       setSelectedSize1(initialPart?.size1 || null);
       setSelectedSize2(initialPart?.size2 || null);
       setSelectedSubBrand(initialPart?.sub_brand || null);
+      setSelectedWidth(initialPart?.width || null)
       setQuantity(line?.product_salesQty || null);
       setLength(line?.product_entryLen ? line?.product_entryLen : null);
       setA(vars?.A);
@@ -923,22 +886,22 @@ const EditPopup = ({ id, vars, setCart }) => {
                       </label>
                     )}
 
-                    {/*{product?.parts[0]?.width && (
-                  <label className="flex gap-1 items-center">
-                    <span className="w-[100px]">Width:</span>
-                    <select
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
-                      value={selectedWidth}
-                      onChange={(e) => setSelectedWidth(e.target.value)}>
-                      <option value="">Width</option>
-                      {availableWidths.map((width, index) => (
-                        <option key={index} value={width}>
-                          {width}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                )}*/}
+                    {product?.parts[0]?.width && !equation ? (
+                      <label className="flex gap-1 items-center">
+                        <span className="w-[100px]">Width:</span>
+                        <select
+                          className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
+                          value={selectedWidth}
+                          onChange={(e) => setSelectedWidth(e.target.value)}>
+                          <option value="">Width</option>
+                          {availableWidths.map((width, index) => (
+                            <option key={index} value={width}>
+                              {width}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : null}
                     {product?.parts[0]?.color && (
                       <Popover>
                         <TooltipProvider>

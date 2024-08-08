@@ -14,11 +14,25 @@ import { useAuth } from '@/context/auth-context';
 import { toast } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
 import axios from 'axios';
+import CartLinesPopup from '@/components/Cart/CartLinesPopup';
+import { Eye } from 'lucide-react';
+
+import {
+  Dialog as DialogBig,
+  DialogContent as DialogContentBig,
+  DialogDescription as DialogDescriptionBig,
+  DialogFooter as DialogFooterBig,
+  DialogHeader as DialogHeaderBig,
+  DialogTitle as DialogTitleBig,
+  DialogTrigger as DialogTriggerBig
+} from '@/components/ui/fullWdialgog';
 
 const Orders = () => {
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState(null);
   const { user } = useAuth();
+
+
 
   useEffect(() => {
     const getOrders = async () => {
@@ -46,7 +60,7 @@ const Orders = () => {
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
     const year = date.getFullYear();
-  
+
     return `${day}/${month}/${year}`;
   };
   return (
@@ -76,6 +90,7 @@ const Orders = () => {
                 <TableHead>Net sale</TableHead>
                 <TableHead>Tax amount</TableHead>
                 <TableHead>Total</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -89,6 +104,22 @@ const Orders = () => {
                   <TableCell>{order.net_sale}</TableCell>
                   <TableCell>{order.tax_amount}</TableCell>
                   <TableCell>{order.total_sale}</TableCell>
+                  <TableCell>
+                    <DialogBig>
+                      <DialogTriggerBig>
+                        <Eye size={22} />
+                      </DialogTriggerBig>
+                      <DialogContentBig className="max-h-[600px] overflow-auto">
+                        <CartLinesPopup
+                          cart={{
+                            cart: { name: order?.poNum, id: order?.number },
+                            lines: order?.lines
+                          }}
+                          forOrders={true}
+                        />
+                      </DialogContentBig>
+                    </DialogBig>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

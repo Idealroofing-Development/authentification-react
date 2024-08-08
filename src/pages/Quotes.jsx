@@ -13,7 +13,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
-import { Trash } from 'lucide-react';
+import { Eye, Trash } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -23,8 +23,29 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/components/ui/dialog';
+
+import {
+  Dialog as DialogBig,
+  DialogContent as DialogContentBig,
+  DialogDescription as DialogDescriptionBig,
+  DialogFooter as DialogFooterBig,
+  DialogHeader as DialogHeaderBig,
+  DialogTitle as DialogTitleBig,
+  DialogTrigger as DialogTriggerBig
+} from '@/components/ui/fullWdialgog';
+
+import {
+  Dialog as DialogSmall,
+  DialogContent as DialogContentSmall,
+  DialogDescription as DialogDescriptionSmall,
+  DialogFooter as DialogFooterSmall,
+  DialogHeader as DialogHeaderSmall,
+  DialogTitle as DialogTitleSmall
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
+import { Input } from '@/components/ui/input';
+import CartLinesPopup from '@/components/Cart/CartLinesPopup';
 
 const Quotes = () => {
   const [quotes, setQuotes] = useState(null);
@@ -34,15 +55,19 @@ const Quotes = () => {
 
   const [loadingOrder, setLoadingOrder] = useState(null);
 
-  const orderQuote = async (quote) => {
-    setLoadingOrder(quote?.number);
+  const [poNumber, setPoNumber] = useState(null);
+  const [quoteToOrder, setQuoteToOrder] = useState(null);
+
+  const orderCart = async (quote) => {
+    setLoadingOrder(true);
+    console.log(quote);
     await axios
       .post(
         `${import.meta.env.VITE_REACT_API_URL}/orders/create`,
 
         {
           quote_number: quote?.number,
-
+          poNum: poNumber,
           useOTS: false
         },
         {
@@ -52,12 +77,13 @@ const Quotes = () => {
         }
       )
       .then((res) => {
-        setLoadingOrder(null);
+        setPoNumber(null);
+        setLoadingOrder(false);
         toast.success('Order created successfully');
         //navigate('/orders');
       })
       .catch((e) => {
-        setLoadingOrder(null);
+        setLoadingOrder(false);
         toast.error('Error creating order');
       });
   };
@@ -137,8 +163,9 @@ const Quotes = () => {
             <TableHeader className="capitalize">
               <TableRow>
                 <TableHead>Quote Number</TableHead>
-
+                <TableHead>Quote Name</TableHead>
                 <TableHead>Creation Date</TableHead>
+
                 <TableHead>OTS Address</TableHead>
                 <TableHead>Net sale</TableHead>
                 <TableHead>Tax amount</TableHead>
@@ -151,6 +178,10 @@ const Quotes = () => {
               {quotes?.map((quote) => (
                 <TableRow key={quote?.quote?.number}>
                   <TableCell>{quote?.quote?.number}</TableCell>
+
+                  <TableCell className="max-w-[150px] whitespace-normal">
+                    {quote?.quote?.name}
+                  </TableCell>
                   <TableCell>{formatDate(quote?.quote?.created_at)}</TableCell>
                   <TableCell className="max-w-[200px] whitespace-normal">
                     {[
@@ -175,7 +206,7 @@ const Quotes = () => {
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>Delete Client</DialogTitle>
+                          <DialogTitle>Delete Quote</DialogTitle>
                         </DialogHeader>
                         <DialogDescription>
                           Are you sure you want to delete this quote? This action cannot be undone.
@@ -193,14 +224,52 @@ const Quotes = () => {
                       </DialogContent>
                     </Dialog>
 
-                    <Button
-                      disabled={loadingOrder == quote?.quote?.number}
-                      onClick={() =>
-                        loadingOrder == quote?.quote?.number ? null : orderQuote(quote?.quote)
-                      }
-                      className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary ">
-                      {loadingOrder == quote?.quote?.number ? 'Creating order...' : 'Create order'}
-                    </Button>
+                    <DialogBig>
+                      <DialogTriggerBig >
+                        <Eye size={22} />
+                      </DialogTriggerBig>
+                      <DialogContentBig className="max-h-[600px] overflow-auto">
+                        <CartLinesPopup
+                          cart={{ cart: { name: quote?.quote?.name, id: quote?.quote?.number }, lines: quote?.quote?.lines }}
+                          forQuotes={true}
+                        />
+                      </DialogContentBig>
+                    </DialogBig>
+
+                    <DialogSmall>
+                      <DialogTrigger>
+                        <Button
+                          onClick={() => setQuoteToOrder(quote?.quote)}
+                          className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary ">
+                          Create Order
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContentSmall>
+                        <DialogHeaderSmall>
+                          <DialogTitleSmall>Create Order </DialogTitleSmall>
+                        </DialogHeaderSmall>
+
+                        <DialogDescriptionSmall className="flex flex-col gap-2">
+                          <div className="mb-2">
+                            <label>PO Number:</label>
+                            <Input
+                              className="mt-1"
+                              value={poNumber}
+                              onChange={(e) => setPoNumber(e.target.value)}
+                            />
+                          </div>
+                        </DialogDescriptionSmall>
+
+                        <DialogFooterSmall>
+                          <Button
+                            disabled={loadingOrder}
+                            onClick={() => (loadingOrder ? null : orderCart(quoteToOrder))}
+                            className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary">
+                            {loadingOrder ? 'Creating order...' : 'Create order'}
+                          </Button>
+                        </DialogFooterSmall>
+                      </DialogContentSmall>
+                    </DialogSmall>
                   </TableCell>
                 </TableRow>
               ))}

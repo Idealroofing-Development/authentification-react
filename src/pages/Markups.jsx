@@ -248,7 +248,7 @@ const Markups = () => {
     if (categories) {
       const formattedCategories = categories.map((cat) => ({
         label: cat.category.name,
-        value: cat.category.name
+        value: cat.category.epicor_category_name
       }));
       setCategoriesWithLabel(formattedCategories);
     }
@@ -258,7 +258,7 @@ const Markups = () => {
     if (categories) {
       const formattedCategories = categories.map((cat) => ({
         label: cat.category.name,
-        value: cat.category.name
+        value: cat.category.epicor_category_name
       }));
       setCategoriesWithLabelForCopy(formattedCategories);
     }
