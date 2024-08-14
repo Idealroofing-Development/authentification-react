@@ -644,7 +644,7 @@ const EditPopup = ({ id, vars, setCart }) => {
                 : (convertToInches(length) * Number(quantity)) / 12
               : Number(quantity),
 
-            Length: selectedLength ? Number(selectedLength) : length ? convertToInches(length) : 1,
+            Length: selectedLength ? 1 : length ? convertToInches(length) : 1,
             Options: product?.product?.options,
             UOM: product?.product?.uom_default,
             iFilm: quantity >= 25 && iFilm ? 1 : 0,
@@ -660,7 +660,7 @@ const EditPopup = ({ id, vars, setCart }) => {
                 ? (Number(selectedLength) * Number(quantity)) / 12
                 : (convertToInches(length) * Number(quantity)) / 12
               : Number(quantity),
-            iLength: selectedLength ? Number(selectedLength) : length ? convertToInches(length) : 1,
+            iLength: selectedLength ? 1 : length ? convertToInches(length) : 1,
             iOptions: product?.product?.options,
             iUOM: product?.product?.uom_default,
             iFilm: false,

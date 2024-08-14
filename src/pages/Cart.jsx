@@ -693,9 +693,9 @@ const Cart = () => {
                           {" "}(${Number(item?.line?.unity_price)?.toFixed(4)} per unit)
                           </span>
                         </p>
-                        <p>
+                        <p className="text-gray-500">
                           ${Number(item?.line?.line_full_cost)?.toFixed(4)}
-                          <span className="text-xs italic text-gray-700">
+                          <span className="text-xs italic text-gray-500">
                             {" "}(${Number(item?.line?.product_cost)?.toFixed(4)} per unit)
                           </span>
                         </p>

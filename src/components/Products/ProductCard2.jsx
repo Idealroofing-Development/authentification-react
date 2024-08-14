@@ -602,7 +602,7 @@ const ProductCard2 = ({ product }) => {
               : Number(quantity),
 
             Length: selectedLength
-              ? Number(selectedLength)
+              ? 1
               : length
                 ? Number(length.toFixed(2))
                 : 1,
@@ -622,7 +622,7 @@ const ProductCard2 = ({ product }) => {
                 : (convertToInches(length) * Number(quantity)) / 12
               : Number(quantity),
             iLength: selectedLength
-              ? Number(selectedLength)
+              ? 1
               : length
                 ? Number(length.toFixed(2))
                 : 1,
