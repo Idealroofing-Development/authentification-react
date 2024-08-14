@@ -566,13 +566,15 @@ const ProductCard2 = ({ product }) => {
                 : `1`,
 
             product_calculated_Len: selectedLength
-              ? Number(selectedLength)
+              ? 1
               : length
                 ? Number(length.toFixed(2))
                 : 1, //check
             product_cost: 0, //check
             product_forced_pricePer: 0, //check
             product_forced_price: 0, //check
+            line_full_cost: 0,
+            line_full_price: 0,
             product_condenstop_fee: 0,
             product_vented_fee: 0,
             product_industrial_fee: 0,

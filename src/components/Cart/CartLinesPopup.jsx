@@ -110,8 +110,8 @@ const CartLinesPopup = ({ cart, forQuotes, forOrders }) => {
   };
 
   useEffect(() => {
-    console.log(cart)
-  },[cart])
+    console.log(cart);
+  }, [cart]);
 
   return (
     <>
@@ -244,8 +244,20 @@ const CartLinesPopup = ({ cart, forQuotes, forOrders }) => {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className=" text-lg">
-                    <p>${item.unity_price}</p>
-                    <p className="text-gris-claire">${item.unity_price}</p>
+                    <p>
+                      ${Number(item?.line_full_price)?.toFixed(4)}
+                      <span className="text-xs italic text-gray-700">
+                        {' '}
+                        (${Number(item?.unity_price)?.toFixed(4)} per unit)
+                      </span>
+                    </p>
+                    <p>
+                      ${Number(item?.line_full_cost)?.toFixed(4)}
+                      <span className="text-xs italic text-gray-700">
+                        {' '}
+                        (${Number(item?.product_cost)?.toFixed(4)} per unit)
+                      </span>
+                    </p>
                   </div>
                 </TableCell>
               </TableRow>

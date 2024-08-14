@@ -94,8 +94,6 @@ const Cart = () => {
 
   const navigate = useNavigate();
 
- 
-
   const orderCart = async () => {
     setLoadingOrder(true);
     await axios
@@ -170,10 +168,10 @@ const Cart = () => {
   const { userInfos } = useContext(UserInfoContext);
 
   useEffect(() => {
-    if (user){
-      console.log("token", user)
+    if (user) {
+      console.log('token', user);
     }
-  }, [user])
+  }, [user]);
 
   const formatDate = (date) => {
     const dd = String(date.getDate()).padStart(2, '0');
@@ -190,7 +188,8 @@ const Cart = () => {
       .post(
         `${import.meta.env.VITE_REACT_API_URL}/cart/save`,
         {
-          name: cartName || `${formatDate(new Date())} ${userInfos?.first_name} ${userInfos?.last_name}`
+          name:
+            cartName || `${formatDate(new Date())} ${userInfos?.first_name} ${userInfos?.last_name}`
         },
         {
           headers: {
@@ -254,7 +253,7 @@ const Cart = () => {
         setAttachedClient(null);
       })
       .catch((e) => {
-        toast.error('Error detacching client');
+        toast.error('Error detaching client');
       });
   };
 
@@ -268,8 +267,8 @@ const Cart = () => {
 
     const calculateLinesTotal = () => {
       return cart?.reduce((acc, line) => {
-        const { product_salesQty, unity_price } = line.line;
-        return acc + parseFloat(product_salesQty) * parseFloat(unity_price);
+        const { line_full_price	 } = line.line;
+        return acc + parseFloat(line_full_price	) ;
       }, 0);
     };
 
@@ -302,7 +301,9 @@ const Cart = () => {
                 OTSZip: '',
                 OTSCountry: '',
                 useOTS: false,
-                name: quoteName || `${formatDate(new Date())} ${userInfos?.first_name} ${userInfos?.last_name}`
+                name:
+                  quoteName ||
+                  `${formatDate(new Date())} ${userInfos?.first_name} ${userInfos?.last_name}`
               }
             : {
                 //cart_id: Number(cartInfos?.id),
@@ -317,7 +318,9 @@ const Cart = () => {
                 OTSZip: selectedAddress?.zip,
                 OTSCountry: selectedAddress?.country,
                 useOTS: true,
-                name: quoteName || `${formatDate(new Date())} ${userInfos?.first_name} ${userInfos?.last_name}`
+                name:
+                  quoteName ||
+                  `${formatDate(new Date())} ${userInfos?.first_name} ${userInfos?.last_name}`
               }
           : {
               //cart_id: Number(cartInfos?.id),
@@ -332,7 +335,9 @@ const Cart = () => {
               OTSZip: customAddressValues?.zip,
               OTSCountry: customAddressValues?.country,
               useOTS: true,
-              name: quoteName || `${formatDate(new Date())} ${userInfos?.first_name} ${userInfos?.last_name}`
+              name:
+                quoteName ||
+                `${formatDate(new Date())} ${userInfos?.first_name} ${userInfos?.last_name}`
             },
 
         {
@@ -585,7 +590,10 @@ const Cart = () => {
                   </DialogDescriptionSmall>
 
                   <DialogFooterSmall>
-                    <Button className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary" disabled={loadingSaveCart} onClick={loadingSaveCart ? null : saveCart}>
+                    <Button
+                      className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary"
+                      disabled={loadingSaveCart}
+                      onClick={loadingSaveCart ? null : saveCart}>
                       {loadingSaveCart ? 'Saving cart...' : 'Save cart'}
                     </Button>
                   </DialogFooterSmall>
@@ -678,10 +686,18 @@ const Cart = () => {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className=" text-lg">
-                        <p>${Number(item?.line?.unity_price)?.toFixed(4)}</p>
-                        <p className="text-gris-claire">
-                          ${Number(item?.line?.unity_price)?.toFixed(4)}
+                      <div className="text-base">
+                        <p>
+                          ${Number(item?.line?.line_full_price)?.toFixed(4)}
+                          <span className="text-xs italic text-gray-700">
+                          {" "}(${Number(item?.line?.unity_price)?.toFixed(4)} per unit)
+                          </span>
+                        </p>
+                        <p>
+                          ${Number(item?.line?.line_full_cost)?.toFixed(4)}
+                          <span className="text-xs italic text-gray-700">
+                            {" "}(${Number(item?.line?.product_cost)?.toFixed(4)} per unit)
+                          </span>
                         </p>
                       </div>
                     </TableCell>
@@ -927,7 +943,10 @@ const Cart = () => {
                     ) : (
                       <DialogDescriptionSmall className="flex flex-col gap-2">
                         <div className="mb-2 text-black">
-                          <label>PO Number: <span className='text-xs italic text-gray-500'>{"(required)"}</span></label>
+                          <label>
+                            PO Number:{' '}
+                            <span className="text-xs italic text-gray-500">{'(required)'}</span>
+                          </label>
                           <Input
                             className="mt-1"
                             value={poNumber}
