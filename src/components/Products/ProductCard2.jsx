@@ -789,7 +789,7 @@ const ProductCard2 = ({ product }) => {
                     <span className="w-[100px]">Gauge:</span>
                     <select
                       disabled={disableGauge}
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
+                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
                       value={selectedGauge}
                       onChange={(e) => setSelectedGauge(e.target.value)}>
                       <option value="">Gauge</option>
@@ -808,7 +808,7 @@ const ProductCard2 = ({ product }) => {
                     <select
                       disabled={disableLength}
                       value={selectedLength}
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
+                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
                       onChange={(e) => setSelectedLength(e.target.value)}>
                       <option value="">Length</option>
                       {availableLengths.map((length, index) => (
@@ -825,7 +825,7 @@ const ProductCard2 = ({ product }) => {
                     <span className="w-[100px]">Size1:</span>
                     <select
                       disabled={disableSize1}
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
+                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
                       value={selectedSize1}
                       onChange={(e) => setSelectedSize1(e.target.value)}>
                       <option value="">Size 1</option>
@@ -840,10 +840,10 @@ const ProductCard2 = ({ product }) => {
 
                 {product?.product?.options_list?.Size2 && (
                   <label className="flex gap-1 items-center">
-                    <span className="w-[100px]">Size2:</span>
+                    <span className="w-[100px] ">Size2:</span>
                     <select
                       disabled={disableSize2}
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
+                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
                       value={selectedSize2}
                       onChange={(e) => setSelectedSize2(e.target.value)}>
                       <option value="">Size 2</option>
@@ -860,7 +860,7 @@ const ProductCard2 = ({ product }) => {
                     <span className="w-[100px]">Profile:</span>
                     <select
                       disabled={disableBrand}
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
+                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
                       value={selectedSubBrand}
                       onChange={(e) => setSelectedSubBrand(e.target.value)}>
                       <option value="">Profile</option>
@@ -878,7 +878,7 @@ const ProductCard2 = ({ product }) => {
                     <span className="w-[100px]">Width:</span>
                     <select
                       disabled={disableWidth}
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
+                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
                       value={selectedWidth}
                       onChange={(e) => setSelectedWidth(e.target.value)}>
                       <option value="">Width</option>
