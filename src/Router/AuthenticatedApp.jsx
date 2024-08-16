@@ -106,11 +106,12 @@ export default function AuthenticatedApp() {
 
         <div className="md:flex justify-between items-center py-2 px-8 bg-gray-100 uppercase text-sm font-semibold hidden ">
           <Link to="/"> Products </Link>
-          <Link to="/quotes"> My Quotes </Link>
-          <Link to="/orders"> My Orders </Link>
+          <Link to="/quotes">  Quotes </Link>
+          <Link to="/orders">  Orders </Link>
+          <Link to="/">  Invoices </Link>
           <Link to="/carts"> Saved Carts </Link>
-          <Link to="/markups"> My Markups </Link>
           <Link to="/clients"> My Clients </Link>
+          <Link to="/markups">  Markups </Link>
         </div>
 
         <div className="md:hidden bg-green-primary p-4 text-white">

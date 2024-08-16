@@ -46,6 +46,10 @@ const ProductCard2 = ({ product }) => {
   const [lengthFT, setLengthFT] = useState('');
   const [lengthMM, setLengthMM] = useState('');
 
+  const [bMeasurement, setBMeasurement] = useState(0);
+
+  
+
   const { user } = useAuth();
 
   const XYValues = [
@@ -174,7 +178,8 @@ const ProductCard2 = ({ product }) => {
         (!selectedColor || part.color === selectedColor) &&
         (!selectedSize1 || part.size1 === selectedSize1) &&
         (!selectedSize2 || part.size2 === selectedSize2) &&
-        (!selectedSubBrand || part.sub_brand === selectedSubBrand)
+        (!selectedSubBrand || part.sub_brand === selectedSubBrand) &&
+        (!selectedWidth || part.width === selectedWidth)
       );
     });
 
@@ -231,7 +236,8 @@ const ProductCard2 = ({ product }) => {
         (!selectedLength || part.length === selectedLength) &&
         (!selectedSize1 || part.size1 === selectedSize1) &&
         (!selectedSize2 || part.size2 === selectedSize2) &&
-        (!selectedSubBrand || part.sub_brand === selectedSubBrand)
+        (!selectedSubBrand || part.sub_brand === selectedSubBrand) &&
+        (!selectedWidth || part.width === selectedWidth)
       );
     });
 
@@ -259,7 +265,8 @@ const ProductCard2 = ({ product }) => {
         (!selectedLength || part.length === selectedLength) &&
         (!selectedColor || part.color === selectedColor) &&
         (!selectedSize2 || part.size2 === selectedSize2) &&
-        (!selectedSubBrand || part.sub_brand === selectedSubBrand)
+        (!selectedSubBrand || part.sub_brand === selectedSubBrand) &&
+        (!selectedWidth || part.width === selectedWidth)
       );
     });
 
@@ -287,7 +294,8 @@ const ProductCard2 = ({ product }) => {
         (!selectedLength || part.length === selectedLength) &&
         (!selectedColor || part.color === selectedColor) &&
         (!selectedSize1 || part.size1 === selectedSize1) &&
-        (!selectedSubBrand || part.sub_brand === selectedSubBrand)
+        (!selectedSubBrand || part.sub_brand === selectedSubBrand) &&
+        (!selectedWidth || part.width === selectedWidth)
       );
     });
 
@@ -315,7 +323,8 @@ const ProductCard2 = ({ product }) => {
         (!selectedLength || part.length === selectedLength) &&
         (!selectedColor || part.color === selectedColor) &&
         (!selectedSize1 || part.size1 === selectedSize1) &&
-        (!selectedSize2 || part.size2 === selectedSize2)
+        (!selectedSize2 || part.size2 === selectedSize2) &&
+        (!selectedWidth || part.width === selectedWidth)
       );
     });
 
@@ -332,6 +341,61 @@ const ProductCard2 = ({ product }) => {
     selectedSize2,
     selectedWidth
   ]);
+
+  const [disableBrand, setDisableBrand] = useState(false);
+  const [disableLength, setDisableLength] = useState(false);
+  const [disableWidth, setDisableWidth] = useState(false);
+  const [disableColor, setDisableColor] = useState(false);
+  const [disableSize1, setDisableSize1] = useState(false);
+  const [disableSize2, setDisableSize2] = useState(false);
+  const [disableGauge, setDisableGauge] = useState(false);
+
+  useEffect(() => {
+    if (product) {
+      const brands = Array.from(new Set(product?.parts?.map((part) => part.sub_brand)));
+      const lengths = Array.from(new Set(product?.parts?.map((part) => part.length)));
+      const widths = Array.from(new Set(product?.parts?.map((part) => part.width)));
+      const colors = Array.from(new Set(product?.parts?.map((part) => part.color)));
+      const gauges = Array.from(new Set(product?.parts?.map((part) => part.gauge)));
+      const size1 = Array.from(new Set(product?.parts?.map((part) => part.size1)));
+      const size2 = Array.from(new Set(product?.parts?.map((part) => part.size2)));
+
+      if (brands.length === 1) {
+        setSelectedSubBrand(brands[0]);
+        setDisableBrand(true);
+      }
+
+      if (lengths.length === 1) {
+        setSelectedLength(lengths[0]);
+        setDisableLength(true);
+      }
+
+      if (widths.length === 1) {
+        setSelectedWidth(widths[0]);
+        setDisableWidth(true);
+      }
+
+      if (colors.length === 1) {
+        setSelectedColor(colors[0]);
+        setDisableColor(true);
+      }
+
+      if (size1.length === 1) {
+        setSelectedSize1(size1[0]);
+        setDisableSize1(true);
+      }
+
+      if (size2.length === 1) {
+        setSelectedSize2(size2[0]);
+        setDisableSize2(true);
+      }
+
+      if (gauges.length === 1) {
+        setSelectedGauge(gauges[0]);
+        setDisableGauge(true);
+      }
+    }
+  }, [product]);
 
   useEffect(() => {
     if (product?.product?.options_list?.EQU) {
@@ -411,7 +475,6 @@ const ProductCard2 = ({ product }) => {
 
   useEffect(() => {
     if (availablePartNums) selectPartNum(availablePartNums);
-    
   }, [availablePartNums]);
 
   function selectPartNum(partNums) {
@@ -565,11 +628,7 @@ const ProductCard2 = ({ product }) => {
                     ?.join(' ')
                 : `1`,
 
-            product_calculated_Len: selectedLength
-              ? 1
-              : length
-                ? Number(length.toFixed(2))
-                : 1, //check
+            product_calculated_Len: selectedLength ? 1 : length ? Number(length.toFixed(2)) : 1, //check
             product_cost: 0, //check
             product_forced_pricePer: 0, //check
             product_forced_price: 0, //check
@@ -601,11 +660,7 @@ const ProductCard2 = ({ product }) => {
                 : (convertToInches(length) * Number(quantity)) / 12
               : Number(quantity),
 
-            Length: selectedLength
-              ? 1
-              : length
-                ? Number(length.toFixed(2))
-                : 1,
+            Length: selectedLength ? 1 : length ? Number(length.toFixed(2)) : 1,
             Options: product?.product?.options,
             UOM: product?.product?.uom_default,
             iFilm: quantity >= 25 && iFilm ? 1 : 0,
@@ -621,11 +676,7 @@ const ProductCard2 = ({ product }) => {
                 ? (Number(selectedLength) * Number(quantity)) / 12
                 : (convertToInches(length) * Number(quantity)) / 12
               : Number(quantity),
-            iLength: selectedLength
-              ? 1
-              : length
-                ? Number(length.toFixed(2))
-                : 1,
+            iLength: selectedLength ? 1 : length ? Number(length.toFixed(2)) : 1,
             iOptions: selectedVValues.length ? `Louv: ${selectedVValues.length}` : 'Louv: 0', // louvering:nb (number of v selected if v exists)
             iUOM: product?.product?.uom_default,
             iFilm: false,
@@ -661,6 +712,42 @@ const ProductCard2 = ({ product }) => {
       setSelectedColor(product?.parts?.find((p) => p.color_enc === 'No Color')?.color);
     }
   }, [product]);
+
+  useEffect(() => {
+    if (b) {
+      setBMeasurement(Number(b));
+    } else if (a) {
+      setBMeasurement(Number(a));
+    }
+    else{
+      setBMeasurement(0)
+    }
+  }, [a, b]);
+
+  useEffect(() => {
+    console.log(a, b, bMeasurement)
+  }, [a, b])
+
+  useEffect(() => {
+    if (product?.product?.options_list?.V && product?.product?.options_list?.B || product?.product?.options_list?.A) {
+      let row = 0;
+      if (bMeasurement < 5.875 && bMeasurement >= 2.75) row = 1;
+      else if (bMeasurement < 9 && bMeasurement >= 5.875) row = 2;
+      else if (bMeasurement < 12.125 && bMeasurement >= 9) row = 3;
+      else if (bMeasurement < 15.325 && bMeasurement >= 12.125) row = 4;
+      else if (bMeasurement < 18.375 && bMeasurement >= 15.25) row = 5;
+      else if (bMeasurement < 21.5 && bMeasurement >= 18.375) row = 6;
+      else if (bMeasurement < 24.625 && bMeasurement >= 21.5) row = 7;
+      else if (bMeasurement < 27.75 && bMeasurement >= 24.625) row = 8;
+      else if (bMeasurement >= 27.75 && bMeasurement < 48) row = 9;
+      else if (!bMeasurement) row = 0
+
+      const letters = 'ABCDEFGHI'.split('');
+      const numOptions = row;
+      setVOptions(letters.slice(0, numOptions));
+      setSelectedVValues([])
+    }
+  }, [bMeasurement]);
 
   return (
     <div className="flex flex-col justify-center w-full productCard">
@@ -701,6 +788,7 @@ const ProductCard2 = ({ product }) => {
                   <label className="flex gap-1 items-center">
                     <span className="w-[100px]">Gauge:</span>
                     <select
+                      disabled={disableGauge}
                       className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
                       value={selectedGauge}
                       onChange={(e) => setSelectedGauge(e.target.value)}>
@@ -718,6 +806,7 @@ const ProductCard2 = ({ product }) => {
                   <label className="flex gap-1 items-center">
                     <span className="w-[100px]">Length:</span>
                     <select
+                      disabled={disableLength}
                       value={selectedLength}
                       className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
                       onChange={(e) => setSelectedLength(e.target.value)}>
@@ -735,6 +824,7 @@ const ProductCard2 = ({ product }) => {
                   <label className="flex gap-1 items-center">
                     <span className="w-[100px]">Size1:</span>
                     <select
+                      disabled={disableSize1}
                       className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
                       value={selectedSize1}
                       onChange={(e) => setSelectedSize1(e.target.value)}>
@@ -752,6 +842,7 @@ const ProductCard2 = ({ product }) => {
                   <label className="flex gap-1 items-center">
                     <span className="w-[100px]">Size2:</span>
                     <select
+                      disabled={disableSize2}
                       className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
                       value={selectedSize2}
                       onChange={(e) => setSelectedSize2(e.target.value)}>
@@ -768,6 +859,7 @@ const ProductCard2 = ({ product }) => {
                   <label className="flex gap-1 items-center">
                     <span className="w-[100px]">Profile:</span>
                     <select
+                      disabled={disableBrand}
                       className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
                       value={selectedSubBrand}
                       onChange={(e) => setSelectedSubBrand(e.target.value)}>
@@ -785,6 +877,7 @@ const ProductCard2 = ({ product }) => {
                   <label className="flex gap-1 items-center">
                     <span className="w-[100px]">Width:</span>
                     <select
+                      disabled={disableWidth}
                       className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
                       value={selectedWidth}
                       onChange={(e) => setSelectedWidth(e.target.value)}>
@@ -967,7 +1060,7 @@ const ProductCard2 = ({ product }) => {
                 )}
                 {product?.product?.options_list?.P1 && (
                   <div className="flex gap-1 items-center">
-                    <span className="w-[100px]">P1:</span>
+                    <span className="w-[100px]">Pitch/Angle:</span>
                     <input
                       step="0.01"
                       value={p1}
@@ -978,7 +1071,7 @@ const ProductCard2 = ({ product }) => {
                 )}
                 {product?.product?.options_list?.P2 && (
                   <div className="flex gap-1 items-center">
-                    <span className="w-[100px]">P2:</span>
+                    <span className="w-[100px]">Pitch/Angle:</span>
                     <input
                       step="0.01"
                       value={p2}

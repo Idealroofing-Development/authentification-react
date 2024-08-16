@@ -32,8 +32,6 @@ const Orders = () => {
   const [orders, setOrders] = useState(null);
   const { user } = useAuth();
 
-
-
   useEffect(() => {
     const getOrders = async () => {
       setLoading(true);
@@ -83,13 +81,14 @@ const Orders = () => {
           <Table className="whitespace-nowrap w-full">
             <TableHeader className="capitalize">
               <TableRow>
-                <TableHead>Order Number</TableHead>
-                <TableHead>PO Number</TableHead>
+                <TableHead>PO</TableHead>
 
                 <TableHead>Creation Date</TableHead>
+                <TableHead>Ship By Date</TableHead>
+                <TableHead>OTS Address</TableHead>
                 <TableHead>Net sale</TableHead>
                 <TableHead>Tax amount</TableHead>
-                <TableHead>Total</TableHead>
+
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -97,13 +96,24 @@ const Orders = () => {
             <TableBody>
               {orders?.map((order) => (
                 <TableRow key={order.number}>
-                  <TableCell>{order?.number}</TableCell>
                   <TableCell>{order?.poNum}</TableCell>
 
                   <TableCell>{formatDate(order?.created_at)}</TableCell>
+                  <TableCell>{formatDate(order?.created_at)}</TableCell>
+                  <TableCell>
+                    {[
+                      order?.OTSAddr1,
+                      order?.OTSCity,
+                      order?.OTSZip,
+                      order?.OTSProv,
+                      order?.OTSCountry
+                    ]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </TableCell>
                   <TableCell>{order.net_sale}</TableCell>
                   <TableCell>{order.tax_amount}</TableCell>
-                  <TableCell>{order.total_sale}</TableCell>
+
                   <TableCell>
                     <DialogBig>
                       <DialogTriggerBig>
