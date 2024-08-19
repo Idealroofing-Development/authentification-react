@@ -497,7 +497,7 @@ const Cart = () => {
 
     const allowedProperties = ['A', 'B', 'C', 'P1', 'P2', 'X', 'Y'];
     const result = {};
-    const parts = input.split(' ');
+    const parts = input?.split(' ');
 
     let index = 0;
 
@@ -510,7 +510,7 @@ const Cart = () => {
         // Extract the letters part (e.g., "AEGI")
         if (parts[index]) {
           const letters = parts[index];
-          result.V = letters.split('');
+          result.V = letters?.split('');
           index++; // Move to the next part
         }
       }
@@ -518,7 +518,7 @@ const Cart = () => {
 
     // Extract the remaining key-value pairs (A=8", B=2", etc.)
     parts.slice(index).forEach((part) => {
-      const [key, value] = part.split('=');
+      const [key, value] = part?.split('=');
       if (key && value && allowedProperties.includes(key)) {
         result[key] = parseFloat(value.replace('"', ''));
       }

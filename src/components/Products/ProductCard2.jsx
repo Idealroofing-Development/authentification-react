@@ -48,8 +48,6 @@ const ProductCard2 = ({ product }) => {
 
   const [bMeasurement, setBMeasurement] = useState(0);
 
-  
-
   const { user } = useAuth();
 
   const XYValues = [
@@ -84,6 +82,7 @@ const ProductCard2 = ({ product }) => {
   const [p1, setP1] = useState('');
   const [p2, setP2] = useState('');
   const [equation, setEquation] = useState('');
+  const [inLength, setInLength] = useState(true);
 
   const [selectedPartNum, setSelectedPartNum] = useState(null);
   const [availablePartNums, setAvailablePartNums] = useState(null);
@@ -403,67 +402,80 @@ const ProductCard2 = ({ product }) => {
     }
   }, [product]);
 
-  const getPartNum = () => {
-    // Replace these with your actual selected values
+  const getPartNum = (e) => {
+    e.preventDefault();
 
+    // Validation
+    if (product?.product?.options_list?.LEN) {
+        if (!lengthInch && !lengthFT && !lengthMM) {
+            console.log('One of the length variables (Inch, FT, MM) must be provided.');
+            return;
+        }
+    }
+
+    if (product?.parts[0]?.color && !selectedColor) {
+        console.log('A color must be selected.');
+        return;
+    }
+
+    // Existing logic
     if (equation) {
-      const result = evaluateEquation(equation.replace('EQU:', ''));
-      setEquationResult(result);
-      console.log('Equation result:', result);
+        const result = evaluateEquation(equation.replace('EQU:', ''));
+        setEquationResult(result);
+        console.log('Equation result:', result);
     }
 
     let substrings = [];
     if (RV && NS && product?.product?.options_list.RVNS) {
-      substrings.push('RVNS');
+        substrings.push('RVNS');
     } else {
-      if (RV && (product?.product?.options_list.REV || product?.product?.options_list.RVNS))
-        substrings.push('RV');
-      if (NS && (product?.product?.options_list.NSR || product?.product?.options_list.RVNS))
-        substrings.push('NS');
+        if (RV && (product?.product?.options_list.REV || product?.product?.options_list.RVNS))
+            substrings.push('RV');
+        if (NS && (product?.product?.options_list.NSR || product?.product?.options_list.RVNS))
+            substrings.push('NS');
     }
     if (WSR && product?.product?.options_list.WSR) substrings.push('WSR');
     if (COND && product?.product?.options_list.COND) substrings.push('COND');
 
     let substringsToExclude = [];
     if (!RV && (product?.product?.options_list.REV || product?.product?.options_list.RVNS))
-      substringsToExclude.push('RV');
+        substringsToExclude.push('RV');
     if (!NS && (product?.product?.options_list.NSR || product?.product?.options_list.RVNS))
-      substringsToExclude.push('NS');
+        substringsToExclude.push('NS');
     if (!WSR && product?.product?.options_list.WSR) substringsToExclude.push('WSR');
     if (!COND && product?.product?.options_list.COND) substringsToExclude.push('COND');
 
-    // Function to check if all substrings are present in the first part of the partnum
     const containsAllSubstrings = (partnum, substrings) => {
-      return substrings.every((substring) => partnum.includes(substring));
+        return substrings.every((substring) => partnum.includes(substring));
     };
 
     const containsNoSubstrings = (partnum, substrings) => {
-      return substrings.every((substring) => !partnum.includes(substring));
+        return substrings.every((substring) => !partnum.includes(substring));
     };
 
     const matchingParts = product?.parts?.filter((part) => {
-      const isGaugeMatch = selectedGauge ? part.gauge === selectedGauge : true;
-      const isLengthMatch = selectedLength ? part.length === selectedLength : true;
-      const isColorMatch = selectedColor ? part.color === selectedColor : true;
-      const isSize1Match = part.size1 ? part.size1 === selectedSize1 : true;
-      const isSize2Match = part.size2 ? part.size2 === selectedSize2 : true;
-      const isWidthMatch = part.width && !equation ? part.width === selectedWidth : true;
-      const isSubBrandMatch = part.sub_brand ? part.sub_brand === selectedSubBrand : true;
-      const partnumPrefix = part.partnum.split('-')[0];
-      const isPrefixMatch =
-        containsAllSubstrings(part.partnum, substrings) &&
-        containsNoSubstrings(part.partnum, substringsToExclude);
+        const isGaugeMatch = selectedGauge ? part.gauge === selectedGauge : true;
+        const isLengthMatch = selectedLength ? part.length === selectedLength : true;
+        const isColorMatch = selectedColor ? part.color === selectedColor : true;
+        const isSize1Match = part.size1 ? part.size1 === selectedSize1 : true;
+        const isSize2Match = part.size2 ? part.size2 === selectedSize2 : true;
+        const isWidthMatch = part.width && !equation ? part.width === selectedWidth : true;
+        const isSubBrandMatch = part.sub_brand ? part.sub_brand === selectedSubBrand : true;
+        const partnumPrefix = part.partnum.split('-')[0];
+        const isPrefixMatch =
+            containsAllSubstrings(part.partnum, substrings) &&
+            containsNoSubstrings(part.partnum, substringsToExclude);
 
-      return (
-        isGaugeMatch &&
-        isLengthMatch &&
-        isColorMatch &&
-        isSize1Match &&
-        isSize2Match &&
-        isSubBrandMatch &&
-        isWidthMatch &&
-        isPrefixMatch
-      );
+        return (
+            isGaugeMatch &&
+            isLengthMatch &&
+            isColorMatch &&
+            isSize1Match &&
+            isSize2Match &&
+            isSubBrandMatch &&
+            isWidthMatch &&
+            isPrefixMatch
+        );
     });
 
     const partNums = matchingParts.map((part) => part.partnum);
@@ -471,7 +483,8 @@ const ProductCard2 = ({ product }) => {
     setAvailablePartNums(partNums);
 
     console.log('partNums', partNums);
-  };
+};
+
 
   useEffect(() => {
     if (availablePartNums) selectPartNum(availablePartNums);
@@ -718,18 +731,20 @@ const ProductCard2 = ({ product }) => {
       setBMeasurement(Number(b));
     } else if (a) {
       setBMeasurement(Number(a));
-    }
-    else{
-      setBMeasurement(0)
+    } else {
+      setBMeasurement(0);
     }
   }, [a, b]);
 
   useEffect(() => {
-    console.log(a, b, bMeasurement)
-  }, [a, b])
+    console.log(a, b, bMeasurement);
+  }, [a, b]);
 
   useEffect(() => {
-    if (product?.product?.options_list?.V && product?.product?.options_list?.B || product?.product?.options_list?.A) {
+    if (
+      (product?.product?.options_list?.V && product?.product?.options_list?.B) ||
+      product?.product?.options_list?.A
+    ) {
       let row = 0;
       if (bMeasurement < 5.875 && bMeasurement >= 2.75) row = 1;
       else if (bMeasurement < 9 && bMeasurement >= 5.875) row = 2;
@@ -740,12 +755,12 @@ const ProductCard2 = ({ product }) => {
       else if (bMeasurement < 24.625 && bMeasurement >= 21.5) row = 7;
       else if (bMeasurement < 27.75 && bMeasurement >= 24.625) row = 8;
       else if (bMeasurement >= 27.75 && bMeasurement < 48) row = 9;
-      else if (!bMeasurement) row = 0
+      else if (!bMeasurement) row = 0;
 
       const letters = 'ABCDEFGHI'.split('');
       const numOptions = row;
       setVOptions(letters.slice(0, numOptions));
-      setSelectedVValues([])
+      setSelectedVValues([]);
     }
   }, [bMeasurement]);
 
@@ -781,429 +796,467 @@ const ProductCard2 = ({ product }) => {
             <h3 className="font-black md:text-2xl text-xl">{product?.product?.title_enc}</h3>
           </Link>
 
-          <div className="grid lg:grid-cols-2">
-            <div className="border-b pb-4 lg:border-r lg:border-b-0 lg:pb-0 lg:pr-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 justify-between gap-4">
-                {product?.parts[0]?.gauge && (
-                  <label className="flex gap-1 items-center">
-                    <span className="w-[100px]">Gauge:</span>
-                    <select
-                      disabled={disableGauge}
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
-                      value={selectedGauge}
-                      onChange={(e) => setSelectedGauge(e.target.value)}>
-                      <option value="">Gauge</option>
-                      {availableGauges.map((gauge, index) => (
-                        <option key={index} value={gauge}>
-                          {gauge}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                )}
-
-                {product?.parts[0]?.length && (
-                  <label className="flex gap-1 items-center">
-                    <span className="w-[100px]">Length:</span>
-                    <select
-                      disabled={disableLength}
-                      value={selectedLength}
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
-                      onChange={(e) => setSelectedLength(e.target.value)}>
-                      <option value="">Length</option>
-                      {availableLengths.map((length, index) => (
-                        <option key={index} value={length}>
-                          {length}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                )}
-
-                {product?.product?.options_list?.Size1 && (
-                  <label className="flex gap-1 items-center">
-                    <span className="w-[100px]">Size1:</span>
-                    <select
-                      disabled={disableSize1}
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
-                      value={selectedSize1}
-                      onChange={(e) => setSelectedSize1(e.target.value)}>
-                      <option value="">Size 1</option>
-                      {availableSize1.map((size1, index) => (
-                        <option key={index} value={size1}>
-                          {size1}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                )}
-
-                {product?.product?.options_list?.Size2 && (
-                  <label className="flex gap-1 items-center">
-                    <span className="w-[100px] ">Size2:</span>
-                    <select
-                      disabled={disableSize2}
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
-                      value={selectedSize2}
-                      onChange={(e) => setSelectedSize2(e.target.value)}>
-                      <option value="">Size 2</option>
-                      {availableSize2.map((size2, index) => (
-                        <option key={index} value={size2}>
-                          {size2}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                )}
-                {product?.parts[0]?.sub_brand && (
-                  <label className="flex gap-1 items-center">
-                    <span className="w-[100px]">Profile:</span>
-                    <select
-                      disabled={disableBrand}
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
-                      value={selectedSubBrand}
-                      onChange={(e) => setSelectedSubBrand(e.target.value)}>
-                      <option value="">Profile</option>
-                      {availableSubBrands.map((subBrand, index) => (
-                        <option key={index} value={subBrand}>
-                          {subBrand}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                )}
-
-                {product?.parts[0]?.width && !equation ? (
-                  <label className="flex gap-1 items-center">
-                    <span className="w-[100px]">Width:</span>
-                    <select
-                      disabled={disableWidth}
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
-                      value={selectedWidth}
-                      onChange={(e) => setSelectedWidth(e.target.value)}>
-                      <option value="">Width</option>
-                      {availableWidths.map((width, index) => (
-                        <option key={index} value={width}>
-                          {width}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                ) : null}
-                {product?.parts[0]?.color && (
-                  <Popover>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger className="w-[60px]">
-                          <PopoverTrigger className="w-[60px]">
-                            {selectedColor ? (
-                              <div
-                                style={{
-                                  background: selectedColor?.startsWith('img')
-                                    ? `url(${import.meta.env.VITE_REACT_COLOR_IMAGES_URL}/${selectedColor?.substring(4)}.webp)`
-                                    : `#${selectedColor}`
-                                }}
-                                className="w-[50px] h-[50px] rounded-md cursor-pointer ring-1 ring-gray-300 relative">
-                                <div className="absolute w-[55px] h-[55px] rounded-md ring-2 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-                              </div>
-                            ) : (
-                              <div className="w-[50px] h-[50px] rounded-md cursor-pointer relative  ring-1 ring-gray-300 ">
-                                <div className="absolute w-[50px] h-[3px] bg-red-500 rotate-45  top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-                              </div>
-                            )}
-                          </PopoverTrigger>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>
-                            {product?.parts?.find((p) => p.color === selectedColor)?.color_enc ||
-                              'No color selected'}
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-
-                    <PopoverContent>
-                      <h3 className="font-semibold mb-3">Please choose a color</h3>
-                      <div className="flex gap-2 flex-wrap max-h-[200px] overflow-auto pl-2 py-2">
-                        <div
-                          onClick={() => setSelectedColor('')}
-                          style={{ backgroundColor: 'white' }}
-                          className="w-[50px] h-[50px] rounded-md cursor-pointer ring-1 ring-gray-300 relative">
-                          {selectedColor === '' ? (
-                            <div className="absolute w-[55px] h-[55px] rounded-md ring-2 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-                          ) : null}
-
-                          <div className="absolute w-[50px] h-[3px] bg-red-500 rotate-45  top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-                        </div>
-                        {availableColors?.map((color, index) => (
-                          <>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <div
-                                    key={index}
-                                    onClick={() => {
-                                      setSelectedColor(color);
-                                      console.log(
-                                        `${import.meta.env.VITE_REACT_COLOR_IMAGES_URL}/${color?.substring(4)}.webp`
-                                      );
-                                    }}
-                                    style={{
-                                      background: color?.startsWith('img')
-                                        ? `url(${import.meta.env.VITE_REACT_COLOR_IMAGES_URL}/${color?.substring(4)}.webp)`
-                                        : `#${color}`
-                                    }}
-                                    className="w-[50px] h-[50px] rounded-md cursor-pointer ring-1 ring-gray-300 relative">
-                                    {color === selectedColor ? (
-                                      <div className="absolute w-[55px] h-[55px] rounded-md ring-2 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-                                    ) : null}
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>{product?.parts?.find((p) => p.color === color)?.color_enc}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </>
+          <form onSubmit={loadingAddToCart ? null : getPartNum}>
+            <div className="grid lg:grid-cols-2">
+              <div className="border-b pb-4 lg:border-r lg:border-b-0 lg:pb-0 lg:pr-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 justify-between gap-4">
+                  {product?.parts[0]?.gauge && (
+                    <label className="flex gap-1 items-center">
+                      <span className="w-[100px]">Gauge:</span>
+                      <select
+                        required
+                        disabled={disableGauge}
+                        className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
+                        value={selectedGauge}
+                        onChange={(e) => setSelectedGauge(e.target.value)}>
+                        <option value="">Gauge</option>
+                        {availableGauges.map((gauge, index) => (
+                          <option key={index} value={gauge}>
+                            {gauge}
+                          </option>
                         ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                )}
-              </div>
-            </div>
+                      </select>
+                    </label>
+                  )}
 
-            <div className="pt-4 lg:pt-0 lg:pl-4">
-              <div className="grid md:grid-cols-2 justify-between gap-4">
-                {product?.product?.options_list?.LEN && (
-                  <div className="flex gap-2 col-span-2">
-                    <div className="flex gap-0 items-center">
+                  {product?.parts[0]?.length && (
+                    <label className="flex gap-1 items-center">
                       <span className="w-[100px]">Length:</span>
-                      <input
-                        value={lengthInch}
-                        onChange={(e) => setLengthInch(e.target.value)}
-                        className="border rounded-md rounded-r-none px-1 text-sm py-1 w-full"
-                      />
-                      <div className="border rounded-md rounded-l-none px-1 text-sm py-1 h-full">
-                        IN
-                      </div>
-                    </div>
+                      <select
+                        required
+                        disabled={disableLength}
+                        value={selectedLength}
+                        className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
+                        onChange={(e) => setSelectedLength(e.target.value)}>
+                        <option value="">Length</option>
+                        {availableLengths.map((length, index) => (
+                          <option key={index} value={length}>
+                            {length}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
 
-                    <div className="flex gap-0 items-center">
-                      <input
-                        value={lengthFT}
-                        onChange={(e) => setLengthFT(e.target.value)}
-                        className="border rounded-md rounded-r-none px-1 text-sm py-1 w-full"
-                      />
-                      <div className="border rounded-md rounded-l-none px-1 text-sm py-1 h-full">
-                        FT
-                      </div>
-                    </div>
+                  {product?.product?.options_list?.Size1 && (
+                    <label className="flex gap-1 items-center">
+                      <span className="w-[100px]">Size1:</span>
+                      <select
+                        required
+                        disabled={disableSize1}
+                        className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
+                        value={selectedSize1}
+                        onChange={(e) => setSelectedSize1(e.target.value)}>
+                        <option value="">Size 1</option>
+                        {availableSize1.map((size1, index) => (
+                          <option key={index} value={size1}>
+                            {size1}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
 
-                    <div className="flex gap-0 items-center">
-                      <input
-                        value={lengthMM}
-                        onChange={(e) => setLengthMM(e.target.value)}
-                        className="border rounded-md rounded-r-none px-1 text-sm py-1 w-full"
-                      />
-                      <div className="border rounded-md rounded-l-none px-1 text-sm py-1 h-full">
-                        MM
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {product?.product?.options_list?.QTY || product?.product?.options_list?.QTYFT ? (
-                  <div className="flex gap-1 items-center">
-                    <span className="w-[100px]">
-                      {product?.product?.options_list?.QTY ? 'Quantity:' : 'QuantityFt:'}
-                    </span>
-                    <input
-                      value={quantity}
-                      onChange={(e) => setQuantity(e.target.value)}
-                      className="border rounded-md px-1 text-sm py-1 w-full"
-                    />
-                    <br />
-                  </div>
-                ) : null}
-                {product?.product?.options_list?.A && (
-                  <div className="flex gap-1 items-center">
-                    <span className="w-[100px]">A:</span>
-                    <input
-                      step="0.01"
-                      value={a}
-                      onChange={(e) => setA(e.target.value)}
-                      className="border rounded-md px-1 text-sm py-1 w-full"
-                    />
-                  </div>
-                )}
-                {product?.product?.options_list?.B && (
-                  <div className="flex gap-1 items-center">
-                    <span className="w-[100px]">B:</span>
-                    <input
-                      step="0.01"
-                      value={b}
-                      onChange={(e) => setB(e.target.value)}
-                      className="border rounded-md px-1 text-sm py-1 w-full"
-                    />
-                  </div>
-                )}
-                {product?.product?.options_list?.C && (
-                  <div className="flex gap-1 items-center">
-                    <span className="w-[100px]">C:</span>
-                    <input
-                      step="0.01"
-                      value={c}
-                      onChange={(e) => setC(e.target.value)}
-                      className="border rounded-md px-1 text-sm py-1 w-full"
-                    />
-                  </div>
-                )}
-                {product?.product?.options_list?.P1 && (
-                  <div className="flex gap-1 items-center">
-                    <span className="w-[100px]">Pitch/Angle:</span>
-                    <input
-                      step="0.01"
-                      value={p1}
-                      onChange={(e) => setP1(e.target.value)}
-                      className="border rounded-md px-1 text-sm py-1 w-full"
-                    />
-                  </div>
-                )}
-                {product?.product?.options_list?.P2 && (
-                  <div className="flex gap-1 items-center">
-                    <span className="w-[100px]">Pitch/Angle:</span>
-                    <input
-                      step="0.01"
-                      value={p2}
-                      onChange={(e) => setP2(e.target.value)}
-                      className="border rounded-md px-1 text-sm py-1 w-full"
-                    />
-                  </div>
-                )}
+                  {product?.product?.options_list?.Size2 && (
+                    <label className="flex gap-1 items-center">
+                      <span className="w-[100px] ">Size2:</span>
+                      <select
+                        required
+                        disabled={disableSize2}
+                        className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
+                        value={selectedSize2}
+                        onChange={(e) => setSelectedSize2(e.target.value)}>
+                        <option value="">Size 2</option>
+                        {availableSize2.map((size2, index) => (
+                          <option key={index} value={size2}>
+                            {size2}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                  {product?.parts[0]?.sub_brand && (
+                    <label className="flex gap-1 items-center">
+                      <span className="w-[100px]">Profile:</span>
+                      <select
+                        required
+                        disabled={disableBrand}
+                        className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
+                        value={selectedSubBrand}
+                        onChange={(e) => setSelectedSubBrand(e.target.value)}>
+                        <option value="">Profile</option>
+                        {availableSubBrands.map((subBrand, index) => (
+                          <option key={index} value={subBrand}>
+                            {subBrand}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
 
-                {product?.product?.options_list?.X && (
-                  <div className="flex gap-1 items-center">
-                    <span className="w-[100px]">X:</span>
-                    <select
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
-                      value={selectedX}
-                      onChange={(e) => handleXYChange(e, setSelectedX)}>
-                      <option value="">Select X</option>
-                      {XYValues?.map((option, index) => (
-                        <option key={index} value={convertFractionToNumber(option.value)}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                  {product?.parts[0]?.width && !equation ? (
+                    <label className="flex gap-1 items-center">
+                      <span className="w-[100px]">Width:</span>
+                      <select
+                        required
+                        disabled={disableWidth}
+                        className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:bg-gray-300"
+                        value={selectedWidth}
+                        onChange={(e) => setSelectedWidth(e.target.value)}>
+                        <option value="">Width</option>
+                        {availableWidths.map((width, index) => (
+                          <option key={index} value={width}>
+                            {width}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ) : null}
+                  {product?.parts[0]?.color && (
+                    <Popover>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild className="w-[60px]">
+                            <PopoverTrigger className="w-[60px]">
+                              {selectedColor ? (
+                                <div
+                                  style={{
+                                    background: selectedColor?.startsWith('img')
+                                      ? `url(${import.meta.env.VITE_REACT_COLOR_IMAGES_URL}/${selectedColor?.substring(4)}.webp)`
+                                      : `#${selectedColor}`
+                                  }}
+                                  className="w-[50px] h-[50px] rounded-md cursor-pointer ring-1 ring-gray-300 relative">
+                                  <div className="absolute w-[55px] h-[55px] rounded-md ring-2 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                                </div>
+                              ) : (
+                                <div className="w-[50px] h-[50px] rounded-md cursor-pointer relative  ring-1 ring-gray-300 ">
+                                  <div className="absolute w-[50px] h-[3px] bg-red-500 rotate-45  top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                                </div>
+                              )}
+                            </PopoverTrigger>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>
+                              {product?.parts?.find((p) => p.color === selectedColor)?.color_enc ||
+                                'No color selected'}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
 
-                {product?.product?.options_list?.Y && (
-                  <div className="flex gap-1 items-center">
-                    <span className="w-[100px]">Y:</span>
+                      <PopoverContent>
+                        <h3 className="font-semibold mb-3">Please choose a color</h3>
+                        <div className="flex gap-2 flex-wrap max-h-[200px] overflow-auto pl-2 py-2">
+                          <div
+                            onClick={() => setSelectedColor('')}
+                            style={{ backgroundColor: 'white' }}
+                            className="w-[50px] h-[50px] rounded-md cursor-pointer ring-1 ring-gray-300 relative">
+                            {selectedColor === '' ? (
+                              <div className="absolute w-[55px] h-[55px] rounded-md ring-2 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                            ) : null}
 
-                    <select
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
-                      value={selectedY}
-                      onChange={(e) => handleXYChange(e, setSelectedY)}>
-                      <option value="">Select Y</option>
-                      {XYValues?.map((option, index) => (
-                        <option key={index} value={convertFractionToNumber(option.value)}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-                {vOptions && (
-                  <div className="flex gap-3 flex-wrap ">
-                    {vOptions.map((letter, index) => (
-                      <label key={index} className="flex items-center gap-1">
-                        <span>{letter}</span>
-                        <input
-                          type="checkbox"
-                          value={letter}
-                          checked={selectedVValues.includes(letter)}
-                          onChange={() => handleVCheckboxChange(letter)}
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                        />
-                      </label>
-                    ))}
-                  </div>
-                )}
+                            <div className="absolute w-[50px] h-[3px] bg-red-500 rotate-45  top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                          </div>
+                          {availableColors?.map((color, index) => (
+                            <>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div
+                                      key={index}
+                                      onClick={() => {
+                                        setSelectedColor(color);
+                                        console.log(
+                                          `${import.meta.env.VITE_REACT_COLOR_IMAGES_URL}/${color?.substring(4)}.webp`
+                                        );
+                                      }}
+                                      style={{
+                                        background: color?.startsWith('img')
+                                          ? `url(${import.meta.env.VITE_REACT_COLOR_IMAGES_URL}/${color?.substring(4)}.webp)`
+                                          : `#${color}`
+                                      }}
+                                      className="w-[50px] h-[50px] rounded-md cursor-pointer ring-1 ring-gray-300 relative">
+                                      {color === selectedColor ? (
+                                        <div className="absolute w-[55px] h-[55px] rounded-md ring-2 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                                      ) : null}
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>
+                                      {product?.parts?.find((p) => p.color === color)?.color_enc}
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </div>
               </div>
 
-              <div className="mt-4">
-                <div className="grid grid-cols-2 justify-between gap-4">
-                  {product?.product?.options_list?.COND && (
-                    <div className="flex gap-2 items-center">
-                      <label>Condenstop</label>
-                      <input checked={COND} onChange={() => setCOND(!COND)} type="checkbox" />
-                    </div>
-                  )}
+              <div className="pt-4 lg:pt-0 lg:pl-4">
+                <div className="grid md:grid-cols-2 justify-between gap-4">
+                  {!product?.product?.options_list?.LEN && (
+                    <>
+                      <div className='cursor-pointer rounded-md bg-green-primary text-white p-2 max-w-max text-sm' onClick={() => setInLength(!inLength)} >
+                        {inLength ? 'Swicth to surface' : 'Switch to length'}
+                      </div>
+                      {inLength ? (
+                        <div className="flex gap-2 col-span-2">
+                          <div className="flex gap-0 items-center">
+                            <span className="w-[100px]">Length:</span>
+                            <input
+                              value={lengthInch}
+                              onChange={(e) => setLengthInch(e.target.value)}
+                              className="border rounded-md rounded-r-none px-1 text-sm py-1 w-full"
+                            />
+                            <div className="border rounded-md rounded-l-none px-1 text-sm py-1 h-full">
+                              IN
+                            </div>
+                          </div>
 
-                  {(product?.product?.options_list?.NSR ||
-                    product?.product?.options_list?.RVNS) && (
-                    <div className="flex gap-2 items-center">
-                      <label>No Stiffener </label>
-                      <input checked={NS} onChange={() => setNS(!NS)} type="checkbox" />
-                    </div>
-                  )}
+                          <div className="flex gap-0 items-center">
+                            <input
+                              value={lengthFT}
+                              onChange={(e) => setLengthFT(e.target.value)}
+                              className="border rounded-md rounded-r-none px-1 text-sm py-1 w-full"
+                            />
+                            <div className="border rounded-md rounded-l-none px-1 text-sm py-1 h-full">
+                              FT
+                            </div>
+                          </div>
 
-                  {(product?.product?.options_list?.REV ||
-                    product?.product?.options_list?.RVNS) && (
-                    <div className="flex gap-2 items-center">
-                      <label>Reversed</label>
-                      <input checked={RV} onChange={() => setRV(!RV)} type="checkbox" />
-                    </div>
-                  )}
-
-                  {product?.product?.options_list?.WSR && (
-                    <div className="flex gap-2 items-center">
-                      <label>With Stiffener</label>
-                      <input checked={WSR} onChange={() => setWSR(!WSR)} type="checkbox" />
-                    </div>
-                  )}
-
-                  {product?.product?.category?.toLowerCase() === 'flats' &&
-                  Number(quantity) >= 25 ? (
-                    <div className="flex gap-3 flex-wrap">
-                      {Number(quantity) >= 25 && (
-                        <div className="flex gap-2">
-                          <label>IFilm</label>
-                          <input
-                            type="checkbox"
-                            checked={iFilm}
-                            onChange={() => setIFilm(!iFilm)}
-                          />
+                          <div className="flex gap-0 items-center">
+                            <input
+                              value={lengthMM}
+                              onChange={(e) => setLengthMM(e.target.value)}
+                              className="border rounded-md rounded-r-none px-1 text-sm py-1 w-full"
+                            />
+                            <div className="border rounded-md rounded-l-none px-1 text-sm py-1 h-full">
+                              MM
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2 col-span-2">
+                          <div className="flex gap-0 items-center">
+                            <span className="w-[100px]">Length:</span>
+                            <input
+                              //value={lengthInch}
+                              //onChange={(e) => setLengthInch(e.target.value)}
+                              className="border rounded-md rounded-r-none px-1 text-sm py-1 w-full"
+                            />
+                            <div className="border rounded-md rounded-l-none px-1 text-sm py-1 h-full">
+                              SQFT
+                            </div>
+                          </div>
                         </div>
                       )}
-
-                      {Number(quantity) >= 50 && (
-                        <div className="flex gap-2">
-                          <label>IEmbossed</label>
-                          <input
-                            type="checkbox"
-                            checked={iEmbossed}
-                            onChange={() => setIEmbossed(!iEmbossed)}
-                          />
-                        </div>
-                      )}
+                    </>
+                  )}
+                  {product?.product?.options_list?.QTY || product?.product?.options_list?.QTYFT ? (
+                    <div className="flex gap-1 items-center">
+                      <span className="w-[100px]">
+                        {product?.product?.options_list?.QTY ? 'Quantity:' : 'QuantityFt:'}
+                      </span>
+                      <input
+                        required
+                        value={quantity}
+                        onChange={(e) => setQuantity(e.target.value)}
+                        className="border rounded-md px-1 text-sm py-1 w-full"
+                      />
+                      <br />
                     </div>
                   ) : null}
+                  {product?.product?.options_list?.A && (
+                    <div className="flex gap-1 items-center">
+                      <span className="w-[100px]">A:</span>
+                      <input
+                        required
+                        step="0.01"
+                        value={a}
+                        onChange={(e) => setA(e.target.value)}
+                        className="border rounded-md px-1 text-sm py-1 w-full"
+                      />
+                    </div>
+                  )}
+                  {product?.product?.options_list?.B && (
+                    <div className="flex gap-1 items-center">
+                      <span className="w-[100px]">B:</span>
+                      <input
+                        required
+                        step="0.01"
+                        value={b}
+                        onChange={(e) => setB(e.target.value)}
+                        className="border rounded-md px-1 text-sm py-1 w-full"
+                      />
+                    </div>
+                  )}
+                  {product?.product?.options_list?.C && (
+                    <div className="flex gap-1 items-center">
+                      <span className="w-[100px]">C:</span>
+                      <input
+                        required
+                        step="0.01"
+                        value={c}
+                        onChange={(e) => setC(e.target.value)}
+                        className="border rounded-md px-1 text-sm py-1 w-full"
+                      />
+                    </div>
+                  )}
+                  {product?.product?.options_list?.P1 && (
+                    <div className="flex gap-1 items-center">
+                      <span className="w-[100px]">Pitch/Angle:</span>
+                      <input
+                        required
+                        step="0.01"
+                        value={p1}
+                        onChange={(e) => setP1(e.target.value)}
+                        className="border rounded-md px-1 text-sm py-1 w-full"
+                      />
+                    </div>
+                  )}
+                  {product?.product?.options_list?.P2 && (
+                    <div className="flex gap-1 items-center">
+                      <span className="w-[100px]">Pitch/Angle:</span>
+                      <input
+                        required
+                        step="0.01"
+                        value={p2}
+                        onChange={(e) => setP2(e.target.value)}
+                        className="border rounded-md px-1 text-sm py-1 w-full"
+                      />
+                    </div>
+                  )}
+
+                  {product?.product?.options_list?.X && (
+                    <div className="flex gap-1 items-center">
+                      <span className="w-[100px]">X:</span>
+                      <select
+                        required
+                        className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
+                        value={selectedX}
+                        onChange={(e) => handleXYChange(e, setSelectedX)}>
+                        <option value="">Select X</option>
+                        {XYValues?.map((option, index) => (
+                          <option key={index} value={convertFractionToNumber(option.value)}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {product?.product?.options_list?.Y && (
+                    <div className="flex gap-1 items-center">
+                      <span className="w-[100px]">Y:</span>
+
+                      <select
+                        className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full"
+                        value={selectedY}
+                        onChange={(e) => handleXYChange(e, setSelectedY)}>
+                        <option value="">Select Y</option>
+                        {XYValues?.map((option, index) => (
+                          <option key={index} value={convertFractionToNumber(option.value)}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  {vOptions && (
+                    <div className="flex gap-3 flex-wrap ">
+                      {vOptions.map((letter, index) => (
+                        <label key={index} className="flex items-center gap-1">
+                          <span>{letter}</span>
+                          <input
+                            type="checkbox"
+                            value={letter}
+                            checked={selectedVValues.includes(letter)}
+                            onChange={() => handleVCheckboxChange(letter)}
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4">
+                  <div className="grid grid-cols-2 justify-between gap-4">
+                    {product?.product?.options_list?.COND && (
+                      <div className="flex gap-2 items-center">
+                        <label>Condenstop</label>
+                        <input checked={COND} onChange={() => setCOND(!COND)} type="checkbox" />
+                      </div>
+                    )}
+
+                    {(product?.product?.options_list?.NSR ||
+                      product?.product?.options_list?.RVNS) && (
+                      <div className="flex gap-2 items-center">
+                        <label>No Stiffener </label>
+                        <input checked={NS} onChange={() => setNS(!NS)} type="checkbox" />
+                      </div>
+                    )}
+
+                    {(product?.product?.options_list?.REV ||
+                      product?.product?.options_list?.RVNS) && (
+                      <div className="flex gap-2 items-center">
+                        <label>Reversed</label>
+                        <input checked={RV} onChange={() => setRV(!RV)} type="checkbox" />
+                      </div>
+                    )}
+
+                    {product?.product?.options_list?.WSR && (
+                      <div className="flex gap-2 items-center">
+                        <label>With Stiffener</label>
+                        <input checked={WSR} onChange={() => setWSR(!WSR)} type="checkbox" />
+                      </div>
+                    )}
+
+                    {product?.product?.category?.toLowerCase() === 'flats' &&
+                    Number(quantity) >= 25 ? (
+                      <div className="flex gap-3 flex-wrap">
+                        {Number(quantity) >= 25 && (
+                          <div className="flex gap-2">
+                            <label>IFilm</label>
+                            <input
+                              type="checkbox"
+                              checked={iFilm}
+                              onChange={() => setIFilm(!iFilm)}
+                            />
+                          </div>
+                        )}
+
+                        {Number(quantity) >= 50 && (
+                          <div className="flex gap-2">
+                            <label>IEmbossed</label>
+                            <input
+                              type="checkbox"
+                              checked={iEmbossed}
+                              onChange={() => setIEmbossed(!iEmbossed)}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div>
-            <Button
-              onClick={loadingAddToCart ? null : getPartNum}
-              disabled={loadingAddToCart}
-              className="bg-green-primary text-white rounded-lg py-1 px-2 text-sm border-green-primary hover:bg-green-primary/90 mt-4">
-              {loadingAddToCart ? 'Adding to cart ...' : 'Add to cart'}
-            </Button>
-          </div>
+            <div>
+              <Button
+                type={'submit'}
+                disabled={loadingAddToCart}
+                className="bg-green-primary text-white rounded-lg py-1 px-2 text-sm border-green-primary hover:bg-green-primary/90 mt-4">
+                {loadingAddToCart ? 'Adding to cart ...' : 'Add to cart'}
+              </Button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
