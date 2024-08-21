@@ -348,6 +348,7 @@ const ProductCard2 = ({ product }) => {
   const [disableSize1, setDisableSize1] = useState(false);
   const [disableSize2, setDisableSize2] = useState(false);
   const [disableGauge, setDisableGauge] = useState(false);
+  const [noColor, setNoColor] = useState(false);
 
   useEffect(() => {
     if (product) {
@@ -407,75 +408,75 @@ const ProductCard2 = ({ product }) => {
 
     // Validation
     if (product?.product?.options_list?.LEN) {
-        if (!lengthInch && !lengthFT && !lengthMM) {
-            console.log('One of the length variables (Inch, FT, MM) must be provided.');
-            return;
-        }
+      if (!lengthInch && !lengthFT && !lengthMM) {
+        console.log('One of the length variables (Inch, FT, MM) must be provided.');
+        return;
+      }
     }
 
     if (product?.parts[0]?.color && !selectedColor) {
-        console.log('A color must be selected.');
-        return;
+      console.log('A color must be selected.');
+      return;
     }
 
     // Existing logic
     if (equation) {
-        const result = evaluateEquation(equation.replace('EQU:', ''));
-        setEquationResult(result);
-        console.log('Equation result:', result);
+      const result = evaluateEquation(equation.replace('EQU:', ''));
+      setEquationResult(result);
+      console.log('Equation result:', result);
     }
 
     let substrings = [];
     if (RV && NS && product?.product?.options_list.RVNS) {
-        substrings.push('RVNS');
+      substrings.push('RVNS');
     } else {
-        if (RV && (product?.product?.options_list.REV || product?.product?.options_list.RVNS))
-            substrings.push('RV');
-        if (NS && (product?.product?.options_list.NSR || product?.product?.options_list.RVNS))
-            substrings.push('NS');
+      if (RV && (product?.product?.options_list.REV || product?.product?.options_list.RVNS))
+        substrings.push('RV');
+      if (NS && (product?.product?.options_list.NSR || product?.product?.options_list.RVNS))
+        substrings.push('NS');
     }
     if (WSR && product?.product?.options_list.WSR) substrings.push('WSR');
     if (COND && product?.product?.options_list.COND) substrings.push('COND');
 
     let substringsToExclude = [];
     if (!RV && (product?.product?.options_list.REV || product?.product?.options_list.RVNS))
-        substringsToExclude.push('RV');
+      substringsToExclude.push('RV');
     if (!NS && (product?.product?.options_list.NSR || product?.product?.options_list.RVNS))
-        substringsToExclude.push('NS');
+      substringsToExclude.push('NS');
     if (!WSR && product?.product?.options_list.WSR) substringsToExclude.push('WSR');
     if (!COND && product?.product?.options_list.COND) substringsToExclude.push('COND');
 
     const containsAllSubstrings = (partnum, substrings) => {
-        return substrings.every((substring) => partnum.includes(substring));
+      return substrings.every((substring) => partnum.includes(substring));
     };
 
     const containsNoSubstrings = (partnum, substrings) => {
-        return substrings.every((substring) => !partnum.includes(substring));
+      return substrings.every((substring) => !partnum.includes(substring));
     };
 
     const matchingParts = product?.parts?.filter((part) => {
-        const isGaugeMatch = selectedGauge ? part.gauge === selectedGauge : true;
-        const isLengthMatch = selectedLength ? part.length === selectedLength : true;
-        const isColorMatch = selectedColor ? part.color === selectedColor : true;
-        const isSize1Match = part.size1 ? part.size1 === selectedSize1 : true;
-        const isSize2Match = part.size2 ? part.size2 === selectedSize2 : true;
-        const isWidthMatch = part.width && !equation ? part.width === selectedWidth : true;
-        const isSubBrandMatch = part.sub_brand ? part.sub_brand === selectedSubBrand : true;
-        const partnumPrefix = part.partnum.split('-')[0];
-        const isPrefixMatch =
-            containsAllSubstrings(part.partnum, substrings) &&
-            containsNoSubstrings(part.partnum, substringsToExclude);
+      const isGaugeMatch = selectedGauge ? part.gauge === selectedGauge : true;
+      const isLengthMatch = selectedLength ? part.length === selectedLength : true;
+      const isColorMatch = selectedColor ? part.color === selectedColor : true;
+      const isSize1Match = part.size1 ? part.size1 === selectedSize1 : true;
+      const isSize2Match = part.size2 ? part.size2 === selectedSize2 : true;
+      const isWidthMatch = part.width && !equation ? part.width === selectedWidth : true;
+      const isSubBrandMatch = part.sub_brand ? part.sub_brand === selectedSubBrand : true;
+      const partnumPrefix = part.partnum.split('-')[0];
+      const isPrefixMatch =
+        containsAllSubstrings(part.partnum, substrings) &&
+        containsNoSubstrings(part.partnum, substringsToExclude);
 
-        return (
-            isGaugeMatch &&
-            isLengthMatch &&
-            isColorMatch &&
-            isSize1Match &&
-            isSize2Match &&
-            isSubBrandMatch &&
-            isWidthMatch &&
-            isPrefixMatch
-        );
+      return (
+        isGaugeMatch &&
+        isLengthMatch &&
+        isColorMatch &&
+        isSize1Match &&
+        isSize2Match &&
+        isSubBrandMatch &&
+        isWidthMatch &&
+        isPrefixMatch
+      );
     });
 
     const partNums = matchingParts.map((part) => part.partnum);
@@ -483,8 +484,7 @@ const ProductCard2 = ({ product }) => {
     setAvailablePartNums(partNums);
 
     console.log('partNums', partNums);
-};
-
+  };
 
   useEffect(() => {
     if (availablePartNums) selectPartNum(availablePartNums);
@@ -721,8 +721,10 @@ const ProductCard2 = ({ product }) => {
   }, [selectedPartNum]);
 
   useEffect(() => {
-    if (product?.parts?.find((p) => p.color_enc === 'No Color')) {
-      setSelectedColor(product?.parts?.find((p) => p.color_enc === 'No Color')?.color);
+    if (product?.parts?.find((p) => p.color	 === 'img:NONE')) {
+      setNoColor(true);
+      setSelectedColor(product?.parts?.find((p) => p.color === 'img:NONE')?.color);
+      
     }
   }, [product]);
 
@@ -763,6 +765,9 @@ const ProductCard2 = ({ product }) => {
       setSelectedVValues([]);
     }
   }, [bMeasurement]);
+  useEffect(() => {
+    console.log("noColor", noColor)
+  }, [noColor])
 
   return (
     <div className="flex flex-col justify-center w-full productCard">
@@ -912,7 +917,13 @@ const ProductCard2 = ({ product }) => {
                       </select>
                     </label>
                   ) : null}
-                  {product?.parts[0]?.color && (
+
+                  {noColor && (
+                    <div className="w-[50px] h-[50px] rounded-md cursor-pointer relative  ring-1 ring-gray-300 ">
+                      <div className="absolute w-[50px] h-[3px] bg-red-500 rotate-45  top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                  )}
+                  {product?.parts[0]?.color && !noColor ?(
                     <Popover>
                       <TooltipProvider>
                         <Tooltip>
@@ -993,7 +1004,7 @@ const ProductCard2 = ({ product }) => {
                         </div>
                       </PopoverContent>
                     </Popover>
-                  )}
+                  ) : null}
                 </div>
               </div>
 
@@ -1001,7 +1012,9 @@ const ProductCard2 = ({ product }) => {
                 <div className="grid md:grid-cols-2 justify-between gap-4">
                   {product?.product?.options_list?.LEN && (
                     <>
-                      <div className='cursor-pointer rounded-md bg-green-primary text-white p-2 max-w-max text-sm' onClick={() => setInLength(!inLength)} >
+                      <div
+                        className="cursor-pointer rounded-md bg-green-primary text-white p-2 max-w-max text-sm"
+                        onClick={() => setInLength(!inLength)}>
                         {inLength ? 'Swicth to surface' : 'Switch to length'}
                       </div>
                       {inLength ? (
@@ -1109,7 +1122,7 @@ const ProductCard2 = ({ product }) => {
                   )}
                   {product?.product?.options_list?.P1 && (
                     <div className="flex gap-1 items-center">
-                      <span className="w-[100px]">Pitch/Angle:</span>
+                      <span className="w-[100px]">Pitch/Angle 1:</span>
                       <input
                         required
                         step="0.01"
@@ -1121,7 +1134,7 @@ const ProductCard2 = ({ product }) => {
                   )}
                   {product?.product?.options_list?.P2 && (
                     <div className="flex gap-1 items-center">
-                      <span className="w-[100px]">Pitch/Angle:</span>
+                      <span className="w-[100px]">Pitch/Angle 2:</span>
                       <input
                         required
                         step="0.01"
