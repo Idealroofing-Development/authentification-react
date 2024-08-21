@@ -919,8 +919,8 @@ const ProductCard2 = ({ product }) => {
                   ) : null}
 
                   {noColor && (
-                    <div className="w-[50px] h-[50px] rounded-md cursor-pointer relative  ring-1 ring-gray-300 ">
-                      <div className="absolute w-[50px] h-[3px] bg-red-500 rotate-45  top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                    <div className="w-[50px] h-[50px] rounded-md cursor-not-allowed relative  ring-1 ring-gray-300 ">
+                      <div className="absolute w-[50px] h-[3px] bg-red-500 rotate-45  top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 " />
                     </div>
                   )}
                   {product?.parts[0]?.color && !noColor ?(
