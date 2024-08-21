@@ -15,7 +15,7 @@ import { toast } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
 import axios from 'axios';
 import CartLinesPopup from '@/components/Cart/CartLinesPopup';
-import { Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 
 import {
   Dialog as DialogBig,
@@ -26,6 +26,7 @@ import {
   DialogTitle as DialogTitleBig,
   DialogTrigger as DialogTriggerBig
 } from '@/components/ui/fullWdialgog';
+import ReactPaginate from 'react-paginate';
 
 const Orders = () => {
   const [loading, setLoading] = useState(false);
@@ -136,6 +137,8 @@ const Orders = () => {
           </Table>
         </div>
       )}
+
+      
     </div>
   );
 };

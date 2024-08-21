@@ -999,7 +999,7 @@ const ProductCard2 = ({ product }) => {
 
               <div className="pt-4 lg:pt-0 lg:pl-4">
                 <div className="grid md:grid-cols-2 justify-between gap-4">
-                  {!product?.product?.options_list?.LEN && (
+                  {product?.product?.options_list?.LEN && (
                     <>
                       <div className='cursor-pointer rounded-md bg-green-primary text-white p-2 max-w-max text-sm' onClick={() => setInLength(!inLength)} >
                         {inLength ? 'Swicth to surface' : 'Switch to length'}

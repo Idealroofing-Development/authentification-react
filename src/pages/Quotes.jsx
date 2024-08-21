@@ -13,7 +13,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
-import { Eye, Trash } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye, Trash } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -46,6 +46,8 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
 import { Input } from '@/components/ui/input';
 import CartLinesPopup from '@/components/Cart/CartLinesPopup';
+import ReactPaginate from 'react-paginate';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const Quotes = () => {
   const [quotes, setQuotes] = useState(null);
@@ -53,14 +55,24 @@ const Quotes = () => {
   const [idToDelete, setIdToDelete] = useState(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
 
+  const navigate = useNavigate();
+
   const [loadingOrder, setLoadingOrder] = useState(null);
 
   const [poNumber, setPoNumber] = useState(null);
   const [quoteToOrder, setQuoteToOrder] = useState(null);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const handlePageClick = (event) => {
+    const updatedSearchParams = new URLSearchParams(searchParams);
+    updatedSearchParams.set('page', event.selected + 1);
+    setSearchParams(updatedSearchParams.toString());
+  };
+
   const orderCart = async (quote) => {
     setLoadingOrder(true);
-    console.log(quote);
+
     await axios
       .post(
         `${import.meta.env.VITE_REACT_API_URL}/orders/create`,
@@ -118,6 +130,9 @@ const Quotes = () => {
       setLoadingQuotes(true);
       await axios
         .get(`${import.meta.env.VITE_REACT_API_URL}/quote/all`, {
+          params: {
+            page: searchParams.get('page') || 1
+          },
           headers: {
             Authorization: `Bearer ${user}`
           }
@@ -132,7 +147,37 @@ const Quotes = () => {
         });
     };
     getQuotes();
-  }, []);
+  }, [searchParams]);
+
+  const loadToCart = async (quote) => {
+    setLoadingOrder(true);
+
+    await axios
+      .post(
+        `${import.meta.env.VITE_REACT_API_URL}/quote/load`,
+
+        {
+          cart_id: quote?.cart_id,
+          
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${user}`
+          }
+        }
+      )
+      .then((res) => {
+        setPoNumber(null);
+        setLoadingOrder(false);
+        toast.success('Quote loaded successfully');
+        navigate('/cart');
+      })
+      .catch((e) => {
+        setLoadingOrder(false);
+        toast.error('Error loading quote to cart');
+        console.log((e))
+      });
+  };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -175,7 +220,7 @@ const Quotes = () => {
             </TableHeader>
 
             <TableBody>
-              {quotes?.map((quote) => (
+              {quotes?.data?.map((quote) => (
                 <TableRow key={quote?.quote?.number}>
                   <TableCell>{quote?.quote?.number}</TableCell>
 
@@ -225,16 +270,50 @@ const Quotes = () => {
                     </Dialog>
 
                     <DialogBig>
-                      <DialogTriggerBig >
+                      <DialogTriggerBig>
                         <Eye size={22} />
                       </DialogTriggerBig>
                       <DialogContentBig className="max-h-[600px] overflow-auto">
                         <CartLinesPopup
-                          cart={{ cart: { name: quote?.quote?.name, id: quote?.quote?.number }, lines: quote?.quote?.lines }}
+                          cart={{
+                            cart: { name: quote?.quote?.name, id: quote?.quote?.number },
+                            lines: quote?.quote?.lines
+                          }}
                           forQuotes={true}
                         />
                       </DialogContentBig>
                     </DialogBig>
+
+                    <DialogSmall>
+                      <DialogTrigger>
+                        <Button
+                          onClick={() => setQuoteToOrder(quote?.quote)}
+                          className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary ">
+                          Load to cart
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContentSmall>
+                        <DialogHeaderSmall>
+                          <DialogTitleSmall>Load to cart </DialogTitleSmall>
+                        </DialogHeaderSmall>
+
+                        <DialogDescriptionSmall className="flex flex-col gap-2">
+                          <div className="mb-2">
+                            This action will overwrite the current cart. Are you sure you wanna
+                            performe this action?
+                          </div>
+                        </DialogDescriptionSmall>
+
+                        <DialogFooterSmall>
+                          <Button
+                            disabled={loadingOrder}
+                            onClick={() => (loadingOrder ? null : loadToCart(quoteToOrder))}
+                            className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary">
+                            {loadingOrder ? 'loading to cart...' : 'Load to cart'}
+                          </Button>
+                        </DialogFooterSmall>
+                      </DialogContentSmall>
+                    </DialogSmall>
 
                     <DialogSmall>
                       <DialogTrigger>
@@ -277,6 +356,23 @@ const Quotes = () => {
           </Table>
         </div>
       )}
+
+      <ReactPaginate
+        breakLabel="..."
+        previousLabel={<ChevronLeft size={24} />}
+        nextLabel={<ChevronRight size={24} />}
+        pageClassName={'py-1.5 px-3'}
+        onPageChange={handlePageClick}
+        pageRangeDisplayed={2}
+        pageCount={Math.ceil(quotes?.total / quotes?.per_page)}
+        renderOnZeroPageCount={null}
+        containerClassName="pagination flex justify-center mt-4 gap-4"
+        activeClassName="active bg-green-primary  text-white"
+        previousLinkClassName="previous mr-2 flex items-center justify-center px-3 py-1 border border-gray-300 rounded hover:bg-gray-200"
+        nextLinkClassName="next ml-2 flex items-center justify-center px-3 py-1 border border-gray-300 rounded hover:bg-gray-200"
+        disabledClassName="disabled opacity-50 cursor-not-allowed"
+        initialPage={(parseInt(searchParams.get('page')) || 1) - 1}
+      />
     </div>
   );
 };

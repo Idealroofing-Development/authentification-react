@@ -495,6 +495,8 @@ const Cart = () => {
   function parseProductVariables(input) {
     if (!input) return {};
 
+    console.log(input)
+
     const allowedProperties = ['A', 'B', 'C', 'P1', 'P2', 'X', 'Y'];
     const result = {};
     const parts = input?.split(' ');
@@ -671,7 +673,7 @@ const Cart = () => {
                             const productVariablesString = item?.line?.product_variables;
                             const parsedVariables = productVariablesString
                               ? parseProductVariables(productVariablesString)
-                              : {};
+                              : null;
 
                             return Object.entries(parsedVariables).map(([key, value]) => (
                               <p className="max-w-max" key={key}>
