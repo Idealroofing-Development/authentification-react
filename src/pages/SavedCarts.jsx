@@ -13,7 +13,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
-import { Eye, Trash } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye, Trash } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -35,8 +35,9 @@ import {
 } from '@/components/ui/fullWdialgog';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import CartLinesPopup from '@/components/Cart/CartLinesPopup';
+import ReactPaginate from 'react-paginate';
 
 const SavedCarts = () => {
   const [carts, setCarts] = useState(null);
@@ -45,6 +46,14 @@ const SavedCarts = () => {
   const [loadingDelete, setLoadingDelete] = useState(false);
 
   const [selectedCart, setSelectedCart] = useState(null);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const handlePageClick = (event) => {
+    const updatedSearchParams = new URLSearchParams(searchParams);
+    updatedSearchParams.set('page', event.selected + 1);
+    setSearchParams(updatedSearchParams.toString());
+  };
 
   const { user } = useAuth();
 
@@ -76,6 +85,9 @@ const SavedCarts = () => {
       setLoadingCarts(true);
       await axios
         .get(`${import.meta.env.VITE_REACT_API_URL}/cart/saved`, {
+          params:{
+            page: searchParams.get('page') || 1
+          },
           headers: {
             Authorization: `Bearer ${user}`
           }
@@ -90,7 +102,7 @@ const SavedCarts = () => {
         });
     };
     getCarts();
-  }, []);
+  }, [searchParams]);
   return (
     <div className="wrapper">
       <h3 className="capitalize text-xl font-bold">Saved carts</h3>
@@ -121,7 +133,7 @@ const SavedCarts = () => {
             </TableHeader>
 
             <TableBody>
-              {carts?.map((cart) => (
+              {carts?.data?.map((cart) => (
                 <TableRow key={cart?.id}>
                   <TableCell>{cart?.id}</TableCell>
                   <TableCell>{cart?.name}</TableCell>
@@ -169,6 +181,23 @@ const SavedCarts = () => {
           </Table>
         </div>
       )}
+
+<ReactPaginate
+        breakLabel="..."
+        previousLabel={<ChevronLeft size={24} />}
+        nextLabel={<ChevronRight size={24} />}
+        pageClassName={'py-1.5 px-3'}
+        onPageChange={handlePageClick}
+        pageRangeDisplayed={2}
+        pageCount={Math.ceil(carts?.total / carts?.per_page)}
+        renderOnZeroPageCount={null}
+        containerClassName="pagination flex justify-center mt-4 gap-4"
+        activeClassName="active bg-green-primary  text-white"
+        previousLinkClassName="previous mr-2 flex items-center justify-center px-3 py-1 border border-gray-300 rounded hover:bg-gray-200"
+        nextLinkClassName="next ml-2 flex items-center justify-center px-3 py-1 border border-gray-300 rounded hover:bg-gray-200"
+        disabledClassName="disabled opacity-50 cursor-not-allowed"
+        initialPage={(parseInt(searchParams.get('page')) || 1) - 1}
+      />
     </div>
   );
 };

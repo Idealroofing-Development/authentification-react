@@ -364,7 +364,7 @@ const Quotes = () => {
         pageClassName={'py-1.5 px-3'}
         onPageChange={handlePageClick}
         pageRangeDisplayed={2}
-        pageCount={Math.ceil(quotes?.total / quotes?.per_page)}
+        pageCount={Math.ceil(quotes?.meta?.total / quotes?.meta?.per_page)}
         renderOnZeroPageCount={null}
         containerClassName="pagination flex justify-center mt-4 gap-4"
         activeClassName="active bg-green-primary  text-white"
