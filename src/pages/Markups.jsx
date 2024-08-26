@@ -44,6 +44,8 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { MultiSelect } from 'react-multi-select-component';
 import { useAuth } from '@/context/auth-context';
+import { useContext } from 'react';
+import { PermissionsContext } from '@/context/permissionsContext';
 
 const Markups = () => {
   const [loading, setLoading] = useState(false);
@@ -85,8 +87,8 @@ const Markups = () => {
   const [endUsers, setEndUsers] = useState(null);
   const [selectedEndUser, setSelectedEndUser] = useState(null);
 
-  const {user} = useAuth()
-
+  const { user } = useAuth();
+  const {permissions} = useContext(PermissionsContext)
 
   const customValueRendererCategories = (selected, options) => {
     if (selected?.length === options?.length) {
@@ -223,16 +225,15 @@ const Markups = () => {
 
       const newMarkups = response.data.markups.map((markup) => {
         //const { markup: markupDetails, end_user } = markup;
-        
-     
+
         return {
           ...markup?.markup,
           enduser: markup?.end_user,
-          is_fixed: markup?.markup.is_fixed === 0 || markup?.markup.is_fixed === false ? false : true
+          is_fixed:
+            markup?.markup.is_fixed === 0 || markup?.markup.is_fixed === false ? false : true
         };
       });
 
-      
       setMarkups([...newMarkups, ...markups]);
     } catch (e) {
       setLoadingSubmit(false);
@@ -241,8 +242,8 @@ const Markups = () => {
   };
 
   useEffect(() => {
-    console.log(markups)
-  }, [markups])
+    console.log(markups);
+  }, [markups]);
 
   useEffect(() => {
     if (categories) {
@@ -352,233 +353,234 @@ const Markups = () => {
     <div className="wrapper">
       <div className="flex gap-4 justify-between items-center">
         <h4 className="capitalize text-xl font-bold">My markups</h4>
+        {permissions?.find((p) => p?.name === 'create markups') ? (
+          <Dialog>
+            <DialogTrigger>
+              <Button className="text-white bg-green-primary hover:bg-green-primary/90 border-none">
+                <PlusIcon size={16} />
+                <div className="text-sm">Add new markup</div>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add new markup</DialogTitle>
+                <DialogDescription>
+                  <div className="flex flex-col gap-3 text-black">
+                    {/*<div className="flex gap-3">
+           <div>
+             <input
+               checked={!forAllProducts}
+               onChange={() => setForAllProducts(false)}
+               className="mt-3"
+               type="checkbox"
+             />{' '}
+             <label>Make markup for some products</label>
+           </div>
 
-        <Dialog>
-          <DialogTrigger>
-            <Button className="text-white bg-green-primary hover:bg-green-primary/90 border-none">
-              <PlusIcon size={16} />
-              <div className="text-sm">Add new markup</div>
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add new markup</DialogTitle>
-              <DialogDescription>
-                <div className="flex flex-col gap-3 text-black">
-                  {/*<div className="flex gap-3">
-                    <div>
-                      <input
-                        checked={!forAllProducts}
-                        onChange={() => setForAllProducts(false)}
-                        className="mt-3"
-                        type="checkbox"
-                      />{' '}
-                      <label>Make markup for some products</label>
-                    </div>
+           <div>
+             <input
+               checked={forAllProducts}
+               onChange={() => {
+                 setForAllProducts(true);
+               }}
+               className="mt-3"
+               type="checkbox"
+             />{' '}
+             <label>Make markup for All products</label>
+           </div>
+         </div>*/}
 
-                    <div>
-                      <input
-                        checked={forAllProducts}
-                        onChange={() => {
-                          setForAllProducts(true);
+                    <div className="w-full">
+                      {/*<select
+             disabled={forAllProducts}
+             value={category}
+             onChange={(e) => setCategory(e.target.value)}
+             className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:opacity-50">
+             <option value={''}>Category</option>
+             {categories?.map((category, index) => (
+               <option key={index} value={category?.category?.name}>
+                 {category?.category?.name}
+               </option>
+             ))}
+           </select>*/}
+                      <MultiSelect
+                        options={categoriesWithLabel}
+                        value={selectedCategories}
+                        onChange={setSelectedCategories}
+                        labelledBy={'Select'}
+                        overrideStrings={{
+                          selectSomeItems: 'Select categories...',
+                          allItemsAreSelected: 'All categories are selected',
+                          selectAll: 'Select all',
+                          search: 'Search',
+                          clearSearch: 'Clear Search'
                         }}
+                        valueRenderer={customValueRendererCategories}
+                      />
+                      <input
+                        checked={forSomeBrands}
+                        onChange={() => setForSomeBrands(!forSomeBrands)}
                         className="mt-3"
                         type="checkbox"
+                        disabled={forAllProducts}
                       />{' '}
-                      <label>Make markup for All products</label>
+                      <label>Make markup only for a brand from this category</label>
                     </div>
-                  </div>*/}
 
-                  <div className="w-full">
-                    {/*<select
-                      disabled={forAllProducts}
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:opacity-50">
-                      <option value={''}>Category</option>
-                      {categories?.map((category, index) => (
-                        <option key={index} value={category?.category?.name}>
-                          {category?.category?.name}
-                        </option>
-                      ))}
-                    </select>*/}
-                    <MultiSelect
-                      options={categoriesWithLabel}
-                      value={selectedCategories}
-                      onChange={setSelectedCategories}
-                      labelledBy={'Select'}
-                      overrideStrings={{
-                        selectSomeItems: 'Select categories...',
-                        allItemsAreSelected: 'All categories are selected',
-                        selectAll: 'Select all',
-                        search: 'Search',
-                        clearSearch: 'Clear Search'
-                      }}
-                      valueRenderer={customValueRendererCategories}
-                    />
-                    <input
-                      checked={forSomeBrands}
-                      onChange={() => setForSomeBrands(!forSomeBrands)}
-                      className="mt-3"
-                      type="checkbox"
-                      disabled={forAllProducts}
-                    />{' '}
-                    <label>Make markup only for a brand from this category</label>
-                  </div>
+                    <div>
+                      {/*<select
+             disabled={!forSomeBrands || forAllProducts}
+             onChange={(e) => setBrand(e.target.value)}
+             value={brand}
+             className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:opacity-50">
+             <option value={''}>Brand</option>
+             {filteredBrands?.map((brand, index) => (
+               <option value={brand}>{brand}</option>
+             ))}
+           </select>*/}
 
-                  <div>
-                    {/*<select
-                      disabled={!forSomeBrands || forAllProducts}
-                      onChange={(e) => setBrand(e.target.value)}
-                      value={brand}
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:opacity-50">
-                      <option value={''}>Brand</option>
-                      {filteredBrands?.map((brand, index) => (
-                        <option value={brand}>{brand}</option>
-                      ))}
-                    </select>*/}
+                      <MultiSelect
+                        disabled={!forSomeBrands}
+                        options={brandsWithLabel}
+                        value={selectedBrands}
+                        onChange={setSelectedBrands}
+                        labelledBy={'Select'}
+                        overrideStrings={{
+                          selectSomeItems: 'Select brands...',
+                          allItemsAreSelected: 'All brands are selected',
+                          selectAll: 'Select all',
+                          search: 'Search',
+                          clearSearch: 'Clear Search'
+                        }}
+                        valueRenderer={customValueRendererBrands}
+                      />
+                    </div>
 
-                    <MultiSelect
-                      disabled={!forSomeBrands}
-                      options={brandsWithLabel}
-                      value={selectedBrands}
-                      onChange={setSelectedBrands}
-                      labelledBy={'Select'}
-                      overrideStrings={{
-                        selectSomeItems: 'Select brands...',
-                        allItemsAreSelected: 'All brands are selected',
-                        selectAll: 'Select all',
-                        search: 'Search',
-                        clearSearch: 'Clear Search'
-                      }}
-                      valueRenderer={customValueRendererBrands}
-                    />
-                  </div>
+                    <div>
+                      <select
+                        className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:opacity-50"
+                        onChange={(e) => setSelectedEndUser(e.target.value)}
+                        value={selectedEndUser}>
+                        <option value="">Select an End User</option>
+                        {endUsers?.map((user) => (
+                          <option key={user?.id} value={user?.id}>
+                            {user?.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
-                  <div>
-                    <select
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:opacity-50"
-                      onChange={(e) => setSelectedEndUser(e.target.value)}
-                      value={selectedEndUser}>
-                      <option value="">Select an End User</option>
-                      {endUsers?.map((user) => (
-                        <option key={user?.id} value={user?.id}>
-                          {user?.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                    <div className="relative w-full">
+                      <input
+                        className="border rounded-md px-1 text-sm py-1 w-full border-gray-500 placeholder:text-gray-500 pr-6"
+                        placeholder="percentage"
+                        value={percentage}
+                        onChange={(e) => setPercentage(e.target.value)}
+                      />
+                      <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500">
+                        %
+                      </span>
+                    </div>
+                    <div>
+                      <input
+                        onChange={() => setIsFixed(!isFixed)}
+                        type="checkbox"
+                        checked={isFixed}
+                      />{' '}
+                      <label>Make this markup as default</label>
+                    </div>
 
-                  <div className="relative w-full">
-                    <input
-                      className="border rounded-md px-1 text-sm py-1 w-full border-gray-500 placeholder:text-gray-500 pr-6"
-                      placeholder="percentage"
-                      value={percentage}
-                      onChange={(e) => setPercentage(e.target.value)}
-                    />
-                    <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500">
-                      %
-                    </span>
-                  </div>
-                  <div>
-                    <input
-                      onChange={() => setIsFixed(!isFixed)}
-                      type="checkbox"
-                      checked={isFixed}
-                    />{' '}
-                    <label>Make this markup as default</label>
-                  </div>
-
-                  <div className="flex flex-col gap-3 md:grid md:grid-cols-2 ">
-                    <Popover>
-                      {isFixed ? (
-                        <Button
-                          disabled
-                          variant={'outline'}
-                          className="w-full justify-start text-left font-normal text-muted-foreground">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {startDate ? format(startDate, 'PPP') : <span>Start date</span>}
-                        </Button>
-                      ) : (
-                        <PopoverTrigger>
+                    <div className="flex flex-col gap-3 md:grid md:grid-cols-2 ">
+                      <Popover>
+                        {isFixed ? (
                           <Button
-                            disabled={isFixed}
+                            disabled
                             variant={'outline'}
-                            className={cn(
-                              'w-full justify-start text-left font-normal',
-                              !startDate && 'text-muted-foreground'
-                            )}>
+                            className="w-full justify-start text-left font-normal text-muted-foreground">
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {startDate ? format(startDate, 'PPP') : <span>Start date</span>}
                           </Button>
-                        </PopoverTrigger>
-                      )}
-                      {!isFixed && (
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={startDate}
-                            onSelect={setStartDate}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      )}
-                    </Popover>
+                        ) : (
+                          <PopoverTrigger>
+                            <Button
+                              disabled={isFixed}
+                              variant={'outline'}
+                              className={cn(
+                                'w-full justify-start text-left font-normal',
+                                !startDate && 'text-muted-foreground'
+                              )}>
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {startDate ? format(startDate, 'PPP') : <span>Start date</span>}
+                            </Button>
+                          </PopoverTrigger>
+                        )}
+                        {!isFixed && (
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={startDate}
+                              onSelect={setStartDate}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        )}
+                      </Popover>
 
-                    <Popover>
-                      {isFixed ? (
-                        <Button
-                          disabled
-                          variant={'outline'}
-                          className="w-full justify-start text-left font-normal text-muted-foreground">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {endDate ? format(endDate, 'PPP') : <span>End date</span>}
-                        </Button>
-                      ) : (
-                        <PopoverTrigger asChild>
+                      <Popover>
+                        {isFixed ? (
                           <Button
+                            disabled
                             variant={'outline'}
-                            className={cn(
-                              'w-full justify-start text-left font-normal',
-                              !endDate && 'text-muted-foreground'
-                            )}>
+                            className="w-full justify-start text-left font-normal text-muted-foreground">
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {endDate ? format(endDate, 'PPP') : <span>End date</span>}
                           </Button>
-                        </PopoverTrigger>
-                      )}
-                      {!isFixed && (
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={endDate}
-                            onSelect={setEndDate}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      )}
-                    </Popover>
-                  </div>
+                        ) : (
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant={'outline'}
+                              className={cn(
+                                'w-full justify-start text-left font-normal',
+                                !endDate && 'text-muted-foreground'
+                              )}>
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {endDate ? format(endDate, 'PPP') : <span>End date</span>}
+                            </Button>
+                          </PopoverTrigger>
+                        )}
+                        {!isFixed && (
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={endDate}
+                              onSelect={setEndDate}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        )}
+                      </Popover>
+                    </div>
 
-                  <Textarea
-                    onChange={(e) => setDescription(e.target.value)}
-                    value={description}
-                    placeholder="description"
-                    className="border-gray-500 placeholder:text-gray-500"
-                  />
-                </div>
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                //onClick={console.log(format(startDate, 'dd/MM/yyyy') )}
-                disabled={loadingSubmit}
-                onClick={handleAddMarkup}>
-                Add Markup
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                    <Textarea
+                      onChange={(e) => setDescription(e.target.value)}
+                      value={description}
+                      placeholder="description"
+                      className="border-gray-500 placeholder:text-gray-500"
+                    />
+                  </div>
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  //onClick={console.log(format(startDate, 'dd/MM/yyyy') )}
+                  disabled={loadingSubmit}
+                  onClick={handleAddMarkup}>
+                  Add Markup
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-4 md:hidden my-8">

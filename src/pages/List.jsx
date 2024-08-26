@@ -5,6 +5,7 @@ import ProductsCollection from '../components/Products/ProductsCollection';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { ClipLoader } from 'react-spinners';
+import { useAuth } from '@/context/auth-context';
 
 export default function List() {
   const [searchParams] = useSearchParams();
@@ -13,107 +14,84 @@ export default function List() {
   const [loadingData, setLoadingData] = useState(false);
   const [errorData, setErrorData] = useState(null);
 
+  const {user} = useAuth()
+
   useEffect(() => {
     setLoadingData(true);
+
     const getProductByQuery = async () => {
-      if (searchParams.get('page')) {
-        await axios
-          .post(
-            `${import.meta.env.VITE_REACT_API_URL}/products/search`,
-            {},
-            {
-              params: {
-                query: searchParams.get('query'),
-                page: searchParams.get('page')
-              }
-            }
-          )
-          .then((res) => {
-            setResult(res.data);
-            setLoadingData(false);
-          })
-          .catch((e) => {
-            setErrorData(e);
-          });
-      } else
-        await axios
-          .post(
-            `${import.meta.env.VITE_REACT_API_URL}/products/search`,
-            {},
-            {
-              params: {
-                query: searchParams.get('query')
-              }
-            }
-          )
-          .then((res) => {
-            setResult(res.data);
-            setLoadingData(false);
-          })
-          .catch((e) => {
-            setErrorData(e);
-          });
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user}`
+        },
+        params: {
+          query: searchParams.get('query'),
+          ...(searchParams.get('page') && { page: searchParams.get('page') })
+        }
+      };
+      
+      try {
+        const res = await axios.post(
+          `${import.meta.env.VITE_REACT_API_URL}/products/search`,
+          {},
+          config
+        );
+        setResult(res.data);
+      } catch (e) {
+        setErrorData(e);
+      } finally {
+        setLoadingData(false);
+      }
     };
 
     const getProductByCategory = async () => {
-      if (searchParams.get('page')) {
-        await axios
-          .get(`${import.meta.env.VITE_REACT_API_URL}/products/category`, {
-            params: {
-              category: searchParams.get('category'),
-              page: searchParams.get('page')
-            }
-          })
-          .then((res) => {
-            setResult(res.data);
-            setLoadingData(false);
-          })
-          .catch((e) => {
-            setErrorData(e);
-          });
-      } else
-        await axios
-          .post(`${import.meta.env.VITE_REACT_API_URL}/products/category`, {
-            params: {
-              category: searchParams.get('category')
-            }
-          })
-          .then((res) => {
-            setResult(res.data);
-            setLoadingData(false);
-          })
-          .catch((e) => {
-            setErrorData(e);
-          });
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user}`
+        },
+        params: {
+          category: searchParams.get('category'),
+          ...(searchParams.get('page') && { page: searchParams.get('page') })
+        }
+      };
+
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_REACT_API_URL}/products/category`,
+          config
+        );
+        setResult(res.data);
+      } catch (e) {
+        setErrorData(e);
+      } finally {
+        setLoadingData(false);
+      }
     };
 
     const getProducts = async () => {
-      if (searchParams.get('page')) {
-        await axios
-          .get(`${import.meta.env.VITE_REACT_API_URL}/products`, {
-            params: {
-              page: searchParams.get('page'),
-              category: searchParams.get('category')
-            }
-          })
-          .then((res) => {
-            setResult(res.data);
-            setLoadingData(false);
-          })
-          .catch((e) => {
-            setErrorData(e);
-          });
-      } else
-        await axios
-          .get(`${import.meta.env.VITE_REACT_API_URL}/products`)
-          .then((res) => {
-            setResult(res.data);
-            setLoadingData(false);
-          })
-          .catch((e) => {
-            setErrorData(e);
-          });
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user}`
+        },
+        params: {
+          ...(searchParams.get('page') && { page: searchParams.get('page') }),
+          ...(searchParams.get('category') && { category: searchParams.get('category') })
+        }
+      };
+
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_REACT_API_URL}/products`,
+          config
+        );
+        setResult(res.data);
+      } catch (e) {
+        setErrorData(e);
+      } finally {
+        setLoadingData(false);
+      }
     };
+
     if (searchParams.get('query')) {
       getProductByQuery();
     } else if (searchParams.get('category')) {
@@ -122,6 +100,7 @@ export default function List() {
       getProducts();
     }
   }, [searchParams]);
+
   return (
     <div className="wrapper">
       <SearchBar />

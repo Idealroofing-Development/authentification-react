@@ -4,6 +4,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { AuthProvider } from './auth-context';
 import { UserInfoProvider } from './userInfosContext';
+import { PermissionsProvider } from './permissionsContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,7 +28,9 @@ function AppProviders({ children }) {
     <QueryClientProvider client={queryClient}>
       <Router>
         <AuthProvider>
-          <UserInfoProvider>{children}</UserInfoProvider>
+          <PermissionsProvider>
+            <UserInfoProvider>{children}</UserInfoProvider>
+          </PermissionsProvider>
         </AuthProvider>
       </Router>
     </QueryClientProvider>

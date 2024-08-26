@@ -1,6 +1,10 @@
 // pretend this is firebase, netlify, or auth0's code.
+
+
 // you shouldn't have to implement something like this in your own app
 const localStorageKey = '__auth_provider_token__';
+
+
 
 async function getToken() {
   // if we were a real auth provider, this is where we would make a request
@@ -12,8 +16,8 @@ async function getToken() {
 function handleUserResponse(response) {
   //il faut mettre console.log de response pour faire la déstructuration (connaitre quoi distructurer)
   window.localStorage.setItem('userInfos', JSON.stringify(response.user));
+  window.localStorage.setItem('permissions', JSON.stringify(response?.user?.roles[0]?.permissions));
   window.localStorage.setItem(localStorageKey, response.token);
-  
 
   return response;
 }
@@ -38,6 +42,7 @@ function register({ email, password }) {
 async function logout() {
   window.localStorage.removeItem(localStorageKey);
   window.localStorage.removeItem("userInfos");
+  window.localStorage.removeItem("permissions");
 }
 
 // an auth provider wouldn't use your client, they'd have their own

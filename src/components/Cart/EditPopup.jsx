@@ -776,18 +776,18 @@ const EditPopup = ({ id, vars, setCart }) => {
               <div className="w-[130px] h-[130px] border-gris-claire border rounded-lg flex items-center justify-center overflow-hidden">
                 <img
                   src={
-                    product?.product?.category?.toLowerCase() === 'flashing' ||
+                    product?.product?.category?.toLowerCase() === 'flashings' ||
                     product?.product?.category?.toLowerCase() === 'accessories'
                       ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/trim/${product?.product?.brand.toLowerCase()}.webp`
-                      : product?.product?.category?.toLowerCase() === 'flats'
+                      : product?.product?.category?.toLowerCase() === 'flat stock '
                         ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/flat/${product?.product?.brand.toLowerCase()}.webp`
                         : product?.product?.category?.toLowerCase() === 'screws'
                           ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/screws/${product?.product?.brand.toLowerCase()}.webp`
-                          : product?.product?.category?.toLowerCase() === 'sliding doors'
+                          : product?.product?.category?.toLowerCase() === 'sliding door hardwar'
                             ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/west/${product?.product?.brand.toLowerCase()}.webp`
-                            : product?.product?.category?.toLowerCase() === 'roofing/siding'
+                            : product?.product?.category?.toLowerCase() === 'panels & profiles'
                               ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/${product?.product?.brand?.toLowerCase()}/panel.webp`
-                              : product?.product?.category?.toLowerCase() === 'decking'
+                              : product?.product?.category?.toLowerCase() === 'steel deck'
                                 ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/${product?.product?.brand?.toLowerCase()}/diagram.webp`
                                 : productImage
                   }
@@ -1184,7 +1184,7 @@ const EditPopup = ({ id, vars, setCart }) => {
                         </div>
                       )}
 
-                      {product?.product?.category?.toLowerCase() === 'flats' &&
+                      {product?.product?.category?.toLowerCase() === 'Flat Stock ' &&
                       Number(quantity) >= 25 ? (
                         <div className="flex gap-3 flex-wrap">
                           {Number(quantity) >= 25 && (

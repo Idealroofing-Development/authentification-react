@@ -776,18 +776,18 @@ const ProductCard2 = ({ product }) => {
           <div className="w-[130px] h-[130px] border-gris-claire border rounded-lg flex items-center justify-center overflow-hidden">
             <img
               src={
-                product?.product?.category?.toLowerCase() === 'flashing' ||
+                product?.product?.category?.toLowerCase() === 'flashings' ||
                 product?.product?.category?.toLowerCase() === 'accessories'
                   ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/trim/${product?.product?.brand.toLowerCase()}.webp`
-                  : product?.product?.category?.toLowerCase() === 'flats'
+                  : product?.product?.category?.toLowerCase() === 'flat stock'
                     ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/flat/${product?.product?.brand.toLowerCase()}.webp`
                     : product?.product?.category?.toLowerCase() === 'screws'
                       ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/screws/${product?.product?.brand.toLowerCase()}.webp`
-                      : product?.product?.category?.toLowerCase() === 'sliding doors'
+                      : product?.product?.category?.toLowerCase() === 'sliding door hardwar'
                         ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/west/${product?.product?.brand.toLowerCase()}.webp`
-                        : product?.product?.category?.toLowerCase() === 'roofing/siding'
+                        : product?.product?.category?.toLowerCase() === 'panels & profiles'
                           ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/${product?.product?.brand?.toLowerCase()}/panel.webp`
-                          : product?.product?.category?.toLowerCase() === 'decking'
+                          : product?.product?.category?.toLowerCase() === 'steel deck'
                             ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/${product?.product?.brand?.toLowerCase()}/diagram.webp`
                             : productImage
               }
@@ -799,6 +799,7 @@ const ProductCard2 = ({ product }) => {
         <div className="w-full  bg-white flex flex-col space-y-2 p-3">
           <Link to="/product/9">
             <h3 className="font-black md:text-2xl text-xl">{product?.product?.title_enc}</h3>
+            
           </Link>
 
           <form onSubmit={loadingAddToCart ? null : getPartNum}>
@@ -890,11 +891,17 @@ const ProductCard2 = ({ product }) => {
                         value={selectedSubBrand}
                         onChange={(e) => setSelectedSubBrand(e.target.value)}>
                         <option value="">Profile</option>
-                        {availableSubBrands.map((subBrand, index) => (
-                          <option key={index} value={subBrand}>
-                            {subBrand}
-                          </option>
-                        ))}
+                        {availableSubBrands.map((subBrand, index) => {
+  // Find the first part that matches the sub_brand and get its desc_enc
+  const descEnc = product?.parts?.find(part => part.sub_brand === subBrand)?.desc_enc;
+
+  return (
+    <option key={index} value={subBrand}>
+      {descEnc} {/* Display the desc_enc value */}
+    </option>
+  );
+})}
+
                       </select>
                     </label>
                   )}
@@ -1230,7 +1237,7 @@ const ProductCard2 = ({ product }) => {
                       </div>
                     )}
 
-                    {product?.product?.category?.toLowerCase() === 'flats' &&
+                    {product?.product?.category?.toLowerCase() === 'Flat Stock ' &&
                     Number(quantity) >= 25 ? (
                       <div className="flex gap-3 flex-wrap">
                         {Number(quantity) >= 25 && (

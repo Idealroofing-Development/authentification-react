@@ -53,11 +53,14 @@ import { useAuth } from '@/context/auth-context';
 import { useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { UserInfoContext } from '@/context/userInfosContext';
+import { PermissionsContext } from '@/context/permissionsContext';
 
 const Cart = () => {
   const [cart, setCart] = useState(null);
   const [cartInfos, setCartInfos] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const {permissions} = useContext(PermissionsContext)
 
   const [endUsers, setEndUsers] = useState(null);
   const [selectedEndUser, setSelectedEndUser] = useState(null);
@@ -267,8 +270,8 @@ const Cart = () => {
 
     const calculateLinesTotal = () => {
       return cart?.reduce((acc, line) => {
-        const { line_full_price	 } = line.line;
-        return acc + parseFloat(line_full_price	) ;
+        const { line_full_price } = line.line;
+        return acc + parseFloat(line_full_price);
       }, 0);
     };
 
@@ -495,7 +498,7 @@ const Cart = () => {
   function parseProductVariables(input) {
     if (!input) return {};
 
-    console.log(input)
+    console.log(input);
 
     const allowedProperties = ['A', 'B', 'C', 'P1', 'P2', 'X', 'Y'];
     const result = {};
@@ -692,13 +695,15 @@ const Cart = () => {
                         <p>
                           ${Number(item?.line?.line_full_price)?.toFixed(4)}
                           <span className="text-xs italic text-gray-700">
-                          {" "}(${Number(item?.line?.unity_price)?.toFixed(4)} per unit)
+                            {' '}
+                            (${Number(item?.line?.unity_price)?.toFixed(4)} per unit)
                           </span>
                         </p>
                         <p className="text-gray-500">
                           ${Number(item?.line?.line_full_cost)?.toFixed(4)}
                           <span className="text-xs italic text-gray-500">
-                            {" "}(${Number(item?.line?.product_cost)?.toFixed(4)} per unit)
+                            {' '}
+                            (${Number(item?.line?.product_cost)?.toFixed(4)} per unit)
                           </span>
                         </p>
                       </div>
@@ -824,100 +829,102 @@ const Cart = () => {
                     </span>
                   </div>
                 )}
-                <DialogSmall>
-                  <DialogTrigger>
-                    <Button
-                      onClick={getAddresses}
-                      className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary w-full">
-                      Request Quote
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContentSmall>
-                    <DialogHeaderSmall>
-                      <DialogTitleSmall>Please choose an address </DialogTitleSmall>
-                    </DialogHeaderSmall>
-                    {loadingAddresses ? (
-                      <DialogDescriptionSmall>
-                        <div className="h-[300px] flex justify-center items-center">
-                          <ClipLoader
-                            color={'black'}
-                            loading={loadingAddresses}
-                            //cssOverride={override}
-                            size={150}
-                            aria-label="Loading Spinner"
-                            data-testid="loader"
-                          />
-                        </div>
-                      </DialogDescriptionSmall>
-                    ) : (
-                      <DialogDescriptionSmall className="flex flex-col gap-2">
-                        <div className="mb-2">
-                          <label>Name:</label>
-                          <Input
-                            className="mt-1"
-                            value={quoteName}
-                            onChange={(e) => setQuoteName(e.target.value)}
-                          />
-                        </div>
-                        {addresses?.map((address) => (
-                          <div
-                            onClick={() => setSelectedAddress(address)}
-                            className={`flex justify-between gap-4 text-black border rounded-md px-4 py-3 cursor-pointer ${
-                              JSON.stringify(selectedAddress) === JSON.stringify(address)
-                                ? 'ring-2 ring-blue-500'
-                                : ''
-                            }`}
-                            key={address?.ship_id}>
-                            <div>
-                              <h3 className="font-blod text-xl">{address.label}</h3>
+                {permissions?.find((p) => p?.name === 'create quote') ? (
+                  <DialogSmall>
+                    <DialogTrigger>
+                      <Button
+                        onClick={getAddresses}
+                        className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary w-full">
+                        Request Quote
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContentSmall>
+                      <DialogHeaderSmall>
+                        <DialogTitleSmall>Please choose an address </DialogTitleSmall>
+                      </DialogHeaderSmall>
+                      {loadingAddresses ? (
+                        <DialogDescriptionSmall>
+                          <div className="h-[300px] flex justify-center items-center">
+                            <ClipLoader
+                              color={'black'}
+                              loading={loadingAddresses}
+                              //cssOverride={override}
+                              size={150}
+                              aria-label="Loading Spinner"
+                              data-testid="loader"
+                            />
+                          </div>
+                        </DialogDescriptionSmall>
+                      ) : (
+                        <DialogDescriptionSmall className="flex flex-col gap-2">
+                          <div className="mb-2">
+                            <label>Name:</label>
+                            <Input
+                              className="mt-1"
+                              value={quoteName}
+                              onChange={(e) => setQuoteName(e.target.value)}
+                            />
+                          </div>
+                          {addresses?.map((address) => (
+                            <div
+                              onClick={() => setSelectedAddress(address)}
+                              className={`flex justify-between gap-4 text-black border rounded-md px-4 py-3 cursor-pointer ${
+                                JSON.stringify(selectedAddress) === JSON.stringify(address)
+                                  ? 'ring-2 ring-blue-500'
+                                  : ''
+                              }`}
+                              key={address?.ship_id}>
                               <div>
-                                {address?.address +
-                                  ', ' +
-                                  address?.city +
-                                  ', ' +
-                                  address?.zip +
-                                  ' ' +
-                                  address?.state +
-                                  ', ' +
-                                  address?.country}
+                                <h3 className="font-blod text-xl">{address.label}</h3>
+                                <div>
+                                  {address?.address +
+                                    ', ' +
+                                    address?.city +
+                                    ', ' +
+                                    address?.zip +
+                                    ' ' +
+                                    address?.state +
+                                    ', ' +
+                                    address?.country}
+                                </div>
+                              </div>
+                              <div>
+                                <input
+                                  checked={
+                                    JSON.stringify(selectedAddress) === JSON.stringify(address)
+                                  }
+                                  type="radio"
+                                />
                               </div>
                             </div>
+                          ))}
+
+                          <div
+                            onClick={() => setSelectedAddress(null)}
+                            className={`flex justify-between gap-4 text-black border rounded-md px-4 py-3 cursor-pointer ${
+                              !selectedAddress ? 'ring-2 ring-blue-500' : ''
+                            }`}>
                             <div>
-                              <input
-                                checked={
-                                  JSON.stringify(selectedAddress) === JSON.stringify(address)
-                                }
-                                type="radio"
-                              />
+                              <h3 className="font-blod text-xl">Custom address</h3>
+                            </div>
+                            <div>
+                              <input checked={!selectedAddress} type="radio" />
                             </div>
                           </div>
-                        ))}
+                        </DialogDescriptionSmall>
+                      )}
 
-                        <div
-                          onClick={() => setSelectedAddress(null)}
-                          className={`flex justify-between gap-4 text-black border rounded-md px-4 py-3 cursor-pointer ${
-                            !selectedAddress ? 'ring-2 ring-blue-500' : ''
-                          }`}>
-                          <div>
-                            <h3 className="font-blod text-xl">Custom address</h3>
-                          </div>
-                          <div>
-                            <input checked={!selectedAddress} type="radio" />
-                          </div>
-                        </div>
-                      </DialogDescriptionSmall>
-                    )}
-
-                    <DialogFooterSmall>
-                      <Button
-                        disabled={loadingCreatingQuote}
-                        onClick={loadingCreatingQuote ? null : requestQuote}
-                        className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary">
-                        {loadingCreatingQuote ? 'Creating quote...' : 'Request Quote'}
-                      </Button>
-                    </DialogFooterSmall>
-                  </DialogContentSmall>
-                </DialogSmall>
+                      <DialogFooterSmall>
+                        <Button
+                          disabled={loadingCreatingQuote}
+                          onClick={loadingCreatingQuote ? null : requestQuote}
+                          className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary">
+                          {loadingCreatingQuote ? 'Creating quote...' : 'Request Quote'}
+                        </Button>
+                      </DialogFooterSmall>
+                    </DialogContentSmall>
+                  </DialogSmall>
+                ) : null}
 
                 <DialogSmall>
                   <DialogTrigger>
