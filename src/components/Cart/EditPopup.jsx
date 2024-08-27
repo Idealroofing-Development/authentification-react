@@ -879,11 +879,18 @@ const EditPopup = ({ id, vars, setCart }) => {
                           value={selectedSubBrand}
                           onChange={(e) => setSelectedSubBrand(e.target.value)}>
                           <option value="">Profile</option>
-                          {availableSubBrands.map((subBrand, index) => (
+                          {availableSubBrands.map((subBrand, index) => {
+                          // Find the first part that matches the sub_brand and get its desc_enc
+                          const descEnc = product?.parts?.find(
+                            (part) => part.sub_brand === subBrand
+                          )?.desc_enc;
+
+                          return (
                             <option key={index} value={subBrand}>
-                              {subBrand}
+                              {descEnc} {/* Display the desc_enc value */}
                             </option>
-                          ))}
+                          );
+                        })}
                         </select>
                       </label>
                     )}

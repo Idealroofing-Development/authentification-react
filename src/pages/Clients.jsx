@@ -27,6 +27,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'react-toastify';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/auth-context';
+import { useContext } from 'react';
+import { PermissionsContext } from '@/context/permissionsContext';
 
 const Clients = () => {
   const [clients, setClients] = useState(null);
@@ -63,7 +65,9 @@ const Clients = () => {
     zip: ''
   });
 
-  const {user} = useAuth()
+  const { user } = useAuth();
+
+  const { permissions } = useContext(PermissionsContext);
 
   useEffect(() => {
     const getClient = async () => {
@@ -135,7 +139,6 @@ const Clients = () => {
           zip: ''
         });
         toast.success('Client added successfully');
-       
       })
       .catch((e) => {
         setLoadingAdd(false);
@@ -144,23 +147,23 @@ const Clients = () => {
   };
 
   useEffect(() => {
-    console.log(clients)
-  }, [clients])
+    console.log(clients);
+  }, [clients]);
 
   const updateClient = async () => {
     setLoadingUpdate(true);
-  
+
     // Find the client in the clients array with the same ID
-    const existingClient = clients.find(client => client.id === clientToEditInfos.id);
-  
+    const existingClient = clients.find((client) => client.id === clientToEditInfos.id);
+
     // Clone the clientToEditInfos to avoid mutating the original object
     const updatedClientInfo = { ...clientToEditInfos };
-  
+
     // If the email hasn't changed, remove it from the updatedClientInfo
     if (existingClient && existingClient.email === clientToEditInfos.email) {
       delete updatedClientInfo.email;
     }
-  
+
     await axios
       .patch(
         `${import.meta.env.VITE_REACT_API_URL}/endusers/update`,
@@ -174,14 +177,14 @@ const Clients = () => {
       )
       .then((res) => {
         setLoadingUpdate(false);
-  
+
         // Replace the client with the same ID in the clients array
-        const updatedClients = clients.map(client =>
+        const updatedClients = clients.map((client) =>
           client.id === clientToEditInfos.id ? { ...client, ...clientToEditInfos } : client
         );
-  
+
         setClients(updatedClients);
-  
+
         // Reset clientToEditInfos
         setClientToEditInfos({
           name: '',
@@ -195,7 +198,7 @@ const Clients = () => {
           country: '',
           zip: ''
         });
-  
+
         toast.success('Client updated successfully');
       })
       .catch((e) => {
@@ -203,126 +206,136 @@ const Clients = () => {
         toast.error('Error Updating Client');
       });
   };
-  
+
   return (
     <div className="wrapper">
       <div className="flex gap-4 justify-between items-center">
         <h3 className="capitalize text-xl font-bold">My Clients</h3>
-        <Dialog>
-          <DialogTrigger>
-            <Button className="text-white bg-green-primary hover:bg-green-primary/90 border-none">
-              <PlusIcon size={16} />
-              <div className="text-sm">Add new client</div>
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add new client</DialogTitle>
-            </DialogHeader>
-            <DialogDescription>
-              <Tabs defaultValue="infos" className="w-full">
-                <TabsList className="w-full flex justify-evenly">
-                  <TabsTrigger className="w-full" value="infos">
-                    Infos
-                  </TabsTrigger>
-                  <TabsTrigger className="w-full" value="address">
-                    Address
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent className="flex flex-col gap-2 text-black" value="infos">
-                  <div className="flex flex-col gap-1">
-                    <label>Name</label>
-                    <Input
-                      value={clientInfos.name}
-                      onChange={(e) => setClientsInfos({ ...clientInfos, name: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label>Email</label>
-                    <Input
-                      value={clientInfos.email}
-                      onChange={(e) => setClientsInfos({ ...clientInfos, email: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label>Phone</label>
-                    <Input
-                      value={clientInfos.phone}
-                      onChange={(e) => setClientsInfos({ ...clientInfos, phone: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label>Company</label>
-                    <Input
-                      value={clientInfos.company}
-                      onChange={(e) => setClientsInfos({ ...clientInfos, company: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label>comment</label>
-                    <Input
-                      value={clientInfos.comment}
-                      onChange={(e) => setClientsInfos({ ...clientInfos, comment: e.target.value })}
-                    />
-                  </div>
-                </TabsContent>
-                <TabsContent className="flex flex-col gap-2 text-black" value="address">
-                  <div className="flex flex-col gap-1">
-                    <label>Address</label>
-                    <Input
-                      value={clientInfos.address}
-                      onChange={(e) => setClientsInfos({ ...clientInfos, address: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label>City</label>
-                    <Input
-                      value={clientInfos.city}
-                      onChange={(e) => setClientsInfos({ ...clientInfos, city: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label>State</label>
-                    <Input
-                      value={clientInfos.state}
-                      onChange={(e) => setClientsInfos({ ...clientInfos, state: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label>Country</label>
-                    <Input
-                      value={clientInfos.country}
-                      onChange={(e) => setClientsInfos({ ...clientInfos, country: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label>ZIP</label>
-                    <Input
-                      value={clientInfos.zip}
-                      onChange={(e) => setClientsInfos({ ...clientInfos, zip: e.target.value })}
-                    />
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </DialogDescription>
-            <div className="flex justify-end">
-              <Button
-                onClick={addClient}
-                disabled={loadingAdd}
-                className="text-white bg-green-primary hover:bg-green-primary/90 border-none mt-1 ">
-                {loadingAdd ? 'Adding client...' : 'Add client'}
+        {permissions?.find((p) => p?.name === 'create end users') ? (
+          <Dialog>
+            <DialogTrigger>
+              <Button className="text-white bg-green-primary hover:bg-green-primary/90 border-none">
+                <PlusIcon size={16} />
+                <div className="text-sm">Add new client</div>
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add new client</DialogTitle>
+              </DialogHeader>
+              <DialogDescription>
+                <Tabs defaultValue="infos" className="w-full">
+                  <TabsList className="w-full flex justify-evenly">
+                    <TabsTrigger className="w-full" value="infos">
+                      Infos
+                    </TabsTrigger>
+                    <TabsTrigger className="w-full" value="address">
+                      Address
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent className="flex flex-col gap-2 text-black" value="infos">
+                    <div className="flex flex-col gap-1">
+                      <label>Name</label>
+                      <Input
+                        value={clientInfos.name}
+                        onChange={(e) => setClientsInfos({ ...clientInfos, name: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label>Email</label>
+                      <Input
+                        value={clientInfos.email}
+                        onChange={(e) => setClientsInfos({ ...clientInfos, email: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label>Phone</label>
+                      <Input
+                        value={clientInfos.phone}
+                        onChange={(e) => setClientsInfos({ ...clientInfos, phone: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label>Company</label>
+                      <Input
+                        value={clientInfos.company}
+                        onChange={(e) =>
+                          setClientsInfos({ ...clientInfos, company: e.target.value })
+                        }
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label>comment</label>
+                      <Input
+                        value={clientInfos.comment}
+                        onChange={(e) =>
+                          setClientsInfos({ ...clientInfos, comment: e.target.value })
+                        }
+                      />
+                    </div>
+                  </TabsContent>
+                  <TabsContent className="flex flex-col gap-2 text-black" value="address">
+                    <div className="flex flex-col gap-1">
+                      <label>Address</label>
+                      <Input
+                        value={clientInfos.address}
+                        onChange={(e) =>
+                          setClientsInfos({ ...clientInfos, address: e.target.value })
+                        }
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label>City</label>
+                      <Input
+                        value={clientInfos.city}
+                        onChange={(e) => setClientsInfos({ ...clientInfos, city: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label>State</label>
+                      <Input
+                        value={clientInfos.state}
+                        onChange={(e) => setClientsInfos({ ...clientInfos, state: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label>Country</label>
+                      <Input
+                        value={clientInfos.country}
+                        onChange={(e) =>
+                          setClientsInfos({ ...clientInfos, country: e.target.value })
+                        }
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label>ZIP</label>
+                      <Input
+                        value={clientInfos.zip}
+                        onChange={(e) => setClientsInfos({ ...clientInfos, zip: e.target.value })}
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </DialogDescription>
+              <div className="flex justify-end">
+                <Button
+                  onClick={addClient}
+                  disabled={loadingAdd}
+                  className="text-white bg-green-primary hover:bg-green-primary/90 border-none mt-1 ">
+                  {loadingAdd ? 'Adding client...' : 'Add client'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        ) : null}
       </div>
       {loading ? (
         <div className="h-full flex items-center justify-center mt-12">
@@ -360,192 +373,198 @@ const Clients = () => {
                     {client?.comment}
                   </TableCell>
                   <TableCell className="flex gap-3">
-                    <Dialog>
-                      <DialogTrigger onClick={() => setIdToDelete(client.id)}>
-                        <Trash size={22} />
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Delete Client</DialogTitle>
-                        </DialogHeader>
-                        <DialogDescription>
-                          Are you sure you want to delete this markup?This action cannot be undone.
-                          This will permanently delete this markup.
-                        </DialogDescription>
+                    {permissions?.find((p) => p?.name === 'delete end users') ? (
+                      <Dialog>
+                        <DialogTrigger onClick={() => setIdToDelete(client.id)}>
+                          <Trash size={22} />
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Delete Client</DialogTitle>
+                          </DialogHeader>
+                          <DialogDescription>
+                            Are you sure you want to delete this markup?This action cannot be
+                            undone. This will permanently delete this markup.
+                          </DialogDescription>
 
-                        <DialogFooter>
-                          <Button
-                            onClick={() => deleteClient(idToDelete)}
-                            disabled={loadingDelete}
-                            className="bg-red-500 text-white hover:bg-red-500/90">
-                            {loadingDelete ? 'Deletin client...' : 'Delete'}
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
+                          <DialogFooter>
+                            <Button
+                              onClick={() => deleteClient(idToDelete)}
+                              disabled={loadingDelete}
+                              className="bg-red-500 text-white hover:bg-red-500/90">
+                              {loadingDelete ? 'Deletin client...' : 'Delete'}
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    ) : null}
 
-                    <Dialog>
-                      <DialogTrigger onClick={() => setClientToEditInfos(client)}>
-                        <Edit size={22} />
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Edit client</DialogTitle>
-                        </DialogHeader>
-                        <DialogDescription>
-                          <Tabs defaultValue="infos" className="w-full">
-                            <TabsList className="w-full flex justify-evenly">
-                              <TabsTrigger className="w-full" value="infos">
-                                Infos
-                              </TabsTrigger>
-                              <TabsTrigger className="w-full" value="address">
-                                Address
-                              </TabsTrigger>
-                            </TabsList>
-                            <TabsContent className="flex flex-col gap-2 text-black" value="infos">
-                              <div className="flex flex-col gap-1">
-                                <label>Name</label>
-                                <Input
-                                  value={clientToEditInfos.name}
-                                  onChange={(e) =>
-                                    setClientToEditInfos({
-                                      ...clientToEditInfos,
-                                      name: e.target.value
-                                    })
-                                  }
-                                />
-                              </div>
+                    {permissions?.find((p) => p?.name === 'update end users') ? (
+                      <Dialog>
+                        <DialogTrigger onClick={() => setClientToEditInfos(client)}>
+                          <Edit size={22} />
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Edit client</DialogTitle>
+                          </DialogHeader>
+                          <DialogDescription>
+                            <Tabs defaultValue="infos" className="w-full">
+                              <TabsList className="w-full flex justify-evenly">
+                                <TabsTrigger className="w-full" value="infos">
+                                  Infos
+                                </TabsTrigger>
+                                <TabsTrigger className="w-full" value="address">
+                                  Address
+                                </TabsTrigger>
+                              </TabsList>
+                              <TabsContent className="flex flex-col gap-2 text-black" value="infos">
+                                <div className="flex flex-col gap-1">
+                                  <label>Name</label>
+                                  <Input
+                                    value={clientToEditInfos.name}
+                                    onChange={(e) =>
+                                      setClientToEditInfos({
+                                        ...clientToEditInfos,
+                                        name: e.target.value
+                                      })
+                                    }
+                                  />
+                                </div>
 
-                              <div className="flex flex-col gap-1">
-                                <label>Email</label>
-                                <Input
-                                  value={clientToEditInfos.email}
-                                  onChange={(e) =>
-                                    setClientToEditInfos({
-                                      ...clientToEditInfos,
-                                      email: e.target.value
-                                    })
-                                  }
-                                />
-                              </div>
+                                <div className="flex flex-col gap-1">
+                                  <label>Email</label>
+                                  <Input
+                                    value={clientToEditInfos.email}
+                                    onChange={(e) =>
+                                      setClientToEditInfos({
+                                        ...clientToEditInfos,
+                                        email: e.target.value
+                                      })
+                                    }
+                                  />
+                                </div>
 
-                              <div className="flex flex-col gap-1">
-                                <label>Phone</label>
-                                <Input
-                                  value={clientToEditInfos.phone}
-                                  onChange={(e) =>
-                                    setClientToEditInfos({
-                                      ...clientToEditInfos,
-                                      phone: e.target.value
-                                    })
-                                  }
-                                />
-                              </div>
+                                <div className="flex flex-col gap-1">
+                                  <label>Phone</label>
+                                  <Input
+                                    value={clientToEditInfos.phone}
+                                    onChange={(e) =>
+                                      setClientToEditInfos({
+                                        ...clientToEditInfos,
+                                        phone: e.target.value
+                                      })
+                                    }
+                                  />
+                                </div>
 
-                              <div className="flex flex-col gap-1">
-                                <label>Company</label>
-                                <Input
-                                  value={clientToEditInfos.company}
-                                  onChange={(e) =>
-                                    setClientToEditInfos({
-                                      ...clientToEditInfos,
-                                      company: e.target.value
-                                    })
-                                  }
-                                />
-                              </div>
+                                <div className="flex flex-col gap-1">
+                                  <label>Company</label>
+                                  <Input
+                                    value={clientToEditInfos.company}
+                                    onChange={(e) =>
+                                      setClientToEditInfos({
+                                        ...clientToEditInfos,
+                                        company: e.target.value
+                                      })
+                                    }
+                                  />
+                                </div>
 
-                              <div className="flex flex-col gap-1">
-                                <label>comment</label>
-                                <Input
-                                  value={clientToEditInfos.comment}
-                                  onChange={(e) =>
-                                    setClientToEditInfos({
-                                      ...clientToEditInfos,
-                                      comment: e.target.value
-                                    })
-                                  }
-                                />
-                              </div>
-                            </TabsContent>
-                            <TabsContent className="flex flex-col gap-2 text-black" value="address">
-                              <div className="flex flex-col gap-1">
-                                <label>Address</label>
-                                <Input
-                                  value={clientToEditInfos.address}
-                                  onChange={(e) =>
-                                    setClientToEditInfos({
-                                      ...clientToEditInfos,
-                                      address: e.target.value
-                                    })
-                                  }
-                                />
-                              </div>
+                                <div className="flex flex-col gap-1">
+                                  <label>comment</label>
+                                  <Input
+                                    value={clientToEditInfos.comment}
+                                    onChange={(e) =>
+                                      setClientToEditInfos({
+                                        ...clientToEditInfos,
+                                        comment: e.target.value
+                                      })
+                                    }
+                                  />
+                                </div>
+                              </TabsContent>
+                              <TabsContent
+                                className="flex flex-col gap-2 text-black"
+                                value="address">
+                                <div className="flex flex-col gap-1">
+                                  <label>Address</label>
+                                  <Input
+                                    value={clientToEditInfos.address}
+                                    onChange={(e) =>
+                                      setClientToEditInfos({
+                                        ...clientToEditInfos,
+                                        address: e.target.value
+                                      })
+                                    }
+                                  />
+                                </div>
 
-                              <div className="flex flex-col gap-1">
-                                <label>City</label>
-                                <Input
-                                  value={clientToEditInfos.city}
-                                  onChange={(e) =>
-                                    setClientToEditInfos({
-                                      ...clientToEditInfos,
-                                      city: e.target.value
-                                    })
-                                  }
-                                />
-                              </div>
+                                <div className="flex flex-col gap-1">
+                                  <label>City</label>
+                                  <Input
+                                    value={clientToEditInfos.city}
+                                    onChange={(e) =>
+                                      setClientToEditInfos({
+                                        ...clientToEditInfos,
+                                        city: e.target.value
+                                      })
+                                    }
+                                  />
+                                </div>
 
-                              <div className="flex flex-col gap-1">
-                                <label>State</label>
-                                <Input
-                                  value={clientToEditInfos.state}
-                                  onChange={(e) =>
-                                    setClientToEditInfos({
-                                      ...clientToEditInfos,
-                                      state: e.target.value
-                                    })
-                                  }
-                                />
-                              </div>
+                                <div className="flex flex-col gap-1">
+                                  <label>State</label>
+                                  <Input
+                                    value={clientToEditInfos.state}
+                                    onChange={(e) =>
+                                      setClientToEditInfos({
+                                        ...clientToEditInfos,
+                                        state: e.target.value
+                                      })
+                                    }
+                                  />
+                                </div>
 
-                              <div className="flex flex-col gap-1">
-                                <label>Country</label>
-                                <Input
-                                  value={clientToEditInfos.country}
-                                  onChange={(e) =>
-                                    setClientToEditInfos({
-                                      ...clientToEditInfos,
-                                      country: e.target.value
-                                    })
-                                  }
-                                />
-                              </div>
+                                <div className="flex flex-col gap-1">
+                                  <label>Country</label>
+                                  <Input
+                                    value={clientToEditInfos.country}
+                                    onChange={(e) =>
+                                      setClientToEditInfos({
+                                        ...clientToEditInfos,
+                                        country: e.target.value
+                                      })
+                                    }
+                                  />
+                                </div>
 
-                              <div className="flex flex-col gap-1">
-                                <label>ZIP</label>
-                                <Input
-                                  value={clientToEditInfos.zip}
-                                  onChange={(e) =>
-                                    setClientToEditInfos({
-                                      ...clientToEditInfos,
-                                      zip: e.target.value
-                                    })
-                                  }
-                                />
-                              </div>
-                            </TabsContent>
-                          </Tabs>
-                        </DialogDescription>
-                        <div className="flex justify-end">
-                          <Button
-                            onClick={updateClient}
-                            disabled={loadingUpdate}
-                            className="text-white bg-green-primary hover:bg-green-primary/90 border-none mt-1 ">
-                            {loadingUpdate ? 'Updating client...' : 'Update client'}
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                                <div className="flex flex-col gap-1">
+                                  <label>ZIP</label>
+                                  <Input
+                                    value={clientToEditInfos.zip}
+                                    onChange={(e) =>
+                                      setClientToEditInfos({
+                                        ...clientToEditInfos,
+                                        zip: e.target.value
+                                      })
+                                    }
+                                  />
+                                </div>
+                              </TabsContent>
+                            </Tabs>
+                          </DialogDescription>
+                          <div className="flex justify-end">
+                            <Button
+                              onClick={updateClient}
+                              disabled={loadingUpdate}
+                              className="text-white bg-green-primary hover:bg-green-primary/90 border-none mt-1 ">
+                              {loadingUpdate ? 'Updating client...' : 'Update client'}
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ))}

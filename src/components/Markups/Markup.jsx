@@ -48,6 +48,8 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { MultiSelect } from 'react-multi-select-component';
 import { useAuth } from '@/context/auth-context';
+import { useContext } from 'react';
+import { PermissionsContext } from '@/context/permissionsContext';
 
 const Markup = ({
   markup,
@@ -102,6 +104,8 @@ const Markup = ({
     const [day, month, year] = dateString.split('/').map(Number);
     return new Date(2000 + year, month - 1, day);
   };
+
+  const {permissions} = useContext(PermissionsContext)
 
   useEffect(() => {
     if (markup) {
@@ -166,12 +170,12 @@ const Markup = ({
 
       const newMarkups = response.data.markups.map((markup) => {
         //const { markup: markupDetails, end_user } = markup;
-        
-     
+
         return {
           ...markup?.markup,
           enduser: markup?.end_user,
-          is_fixed: markup?.markup.is_fixed === 0 || markup?.markup.is_fixed === false ? false : true
+          is_fixed:
+            markup?.markup.is_fixed === 0 || markup?.markup.is_fixed === false ? false : true
         };
       });
 
@@ -272,87 +276,91 @@ const Markup = ({
       <TableCell>{markup?.description}</TableCell>
       <TableCell>
         <div className=" flex gap-3 text-gray-700">
-          <Dialog>
-            <DialogTrigger>
-              <Copy className="cursor-pointer" size={22} />
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  Copy the markup{' '}
-                  {markup?.category
-                    ? `Category : ${markup?.category}`
-                    : markup?.brand
-                      ? `Brand : ${markup?.brand}`
-                      : 'Copy Markup'}{' '}
-                </DialogTitle>
-              </DialogHeader>
-              <DialogDescription>
-                <MultiSelect
-                  options={categoriesWithLabeForCopyl}
-                  value={selectedCategoriesForCopy}
-                  onChange={setSelectedCategoriesForCopy}
-                  labelledBy={'Select'}
-                  overrideStrings={{
-                    selectSomeItems: 'Select categories...',
-                    allItemsAreSelected: 'All categories are selected',
-                    selectAll: 'Select all',
-                    search: 'Search',
-                    clearSearch: 'Clear Search'
-                  }}
-                  valueRenderer={customValueRendererCategoriesForCopy}
-                />
-                <input
-                  checked={forSomeBrandToCopy}
-                  onChange={() => setForSomeBrandsToCopy(!forSomeBrandToCopy)}
-                  className="mt-3"
-                  type="checkbox"
-                  //disabled={forAllProducts}
-                />{' '}
-                <label>Make markup only for a brand from this category</label>
-                <MultiSelect
-                  disabled={!forSomeBrandToCopy}
-                  options={brandsWithLabelForCopy}
-                  value={selectedBrandsForCopy}
-                  onChange={setSelectedBrandsForCopy}
-                  labelledBy={'Select'}
-                  overrideStrings={{
-                    selectSomeItems: 'Select brands...',
-                    allItemsAreSelected: 'All brands are selected',
-                    selectAll: 'Select all',
-                    search: 'Search',
-                    clearSearch: 'Clear Search'
-                  }}
-                  valueRenderer={customValueRendererBrandsForCopy}
-                />
-              </DialogDescription>
-              <DialogFooter>
-                <Button
-                  //onClick={console.log(format(startDate, 'dd/MM/yyyy') )}
-                  disabled={loadingSubmit}
-                  onClick={handleCopyMarkup}>
-                  Copy markup
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          <Dialog>
-            <DialogTrigger>
-              <Edit className="cursor-pointer" size={22} />
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  Edit markup for{' '}
-                  {markup?.category
-                    ? `Category : ${markup?.category}`
-                    : markup?.brand
-                      ? `Brand : ${markup?.brand}`
-                      : 'Edit Markup'}
-                </DialogTitle>
+          {permissions?.find((p) => p?.name === 'create markups') ? (
+            <Dialog>
+              <DialogTrigger>
+                <Copy className="cursor-pointer" size={22} />
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    Copy the markup{' '}
+                    {markup?.category
+                      ? `Category : ${markup?.category}`
+                      : markup?.brand
+                        ? `Brand : ${markup?.brand}`
+                        : 'Copy Markup'}{' '}
+                  </DialogTitle>
+                </DialogHeader>
                 <DialogDescription>
-                  <div className="flex flex-col gap-3 text-black">
-                    {/*<div className="flex gap-3">
+                  <MultiSelect
+                    options={categoriesWithLabeForCopyl}
+                    value={selectedCategoriesForCopy}
+                    onChange={setSelectedCategoriesForCopy}
+                    labelledBy={'Select'}
+                    overrideStrings={{
+                      selectSomeItems: 'Select categories...',
+                      allItemsAreSelected: 'All categories are selected',
+                      selectAll: 'Select all',
+                      search: 'Search',
+                      clearSearch: 'Clear Search'
+                    }}
+                    valueRenderer={customValueRendererCategoriesForCopy}
+                  />
+                  <input
+                    checked={forSomeBrandToCopy}
+                    onChange={() => setForSomeBrandsToCopy(!forSomeBrandToCopy)}
+                    className="mt-3"
+                    type="checkbox"
+                    //disabled={forAllProducts}
+                  />{' '}
+                  <label>Make markup only for a brand from this category</label>
+                  <MultiSelect
+                    disabled={!forSomeBrandToCopy}
+                    options={brandsWithLabelForCopy}
+                    value={selectedBrandsForCopy}
+                    onChange={setSelectedBrandsForCopy}
+                    labelledBy={'Select'}
+                    overrideStrings={{
+                      selectSomeItems: 'Select brands...',
+                      allItemsAreSelected: 'All brands are selected',
+                      selectAll: 'Select all',
+                      search: 'Search',
+                      clearSearch: 'Clear Search'
+                    }}
+                    valueRenderer={customValueRendererBrandsForCopy}
+                  />
+                </DialogDescription>
+                <DialogFooter>
+                  <Button
+                    //onClick={console.log(format(startDate, 'dd/MM/yyyy') )}
+                    disabled={loadingSubmit}
+                    onClick={handleCopyMarkup}>
+                    Copy markup
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          ) : null}
+
+          {permissions?.find((p) => p?.name === 'update markups') ? (
+            <Dialog>
+              <DialogTrigger>
+                <Edit className="cursor-pointer" size={22} />
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    Edit markup for{' '}
+                    {markup?.category
+                      ? `Category : ${markup?.category}`
+                      : markup?.brand
+                        ? `Brand : ${markup?.brand}`
+                        : 'Edit Markup'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    <div className="flex flex-col gap-3 text-black">
+                      {/*<div className="flex gap-3">
                       <div>
                         <input
                           checked={!forAllProducts}
@@ -417,19 +425,19 @@ const Markup = ({
                       </select>
                     </div>*/}
 
-                    <div className="relative w-full">
-                      <input
-                        className="border rounded-md px-1 text-sm py-1 w-full border-gray-500 placeholder:text-gray-500 pr-6"
-                        placeholder="percentage"
-                        value={percentage}
-                        onChange={(e) => setPercentage(e.target.value)}
-                      />
-                      <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500">
-                        %
-                      </span>
-                    </div>
+                      <div className="relative w-full">
+                        <input
+                          className="border rounded-md px-1 text-sm py-1 w-full border-gray-500 placeholder:text-gray-500 pr-6"
+                          placeholder="percentage"
+                          value={percentage}
+                          onChange={(e) => setPercentage(e.target.value)}
+                        />
+                        <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500">
+                          %
+                        </span>
+                      </div>
 
-                    {/*<div>
+                      {/*<div>
                       <input
                         onChange={() => setIsFixed(!isFixed)}
                         type="checkbox"
@@ -509,39 +517,45 @@ const Markup = ({
                       </Popover>
                     </div>*/}
 
-                    <Textarea
-                      onChange={(e) => setDescription(e.target.value)}
-                      value={description}
-                      placeholder="description"
-                      className="border-gray-500 placeholder:text-gray-500"
-                    />
-                  </div>
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button disabled={loadingSubmit} onClick={loadingSubmit ? null : handleEditMarkup}>
-                  Save changes
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          <AlertDialog>
-            <AlertDialogTrigger>
-              <Trash className="cursor-pointer" size={22} />
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure you want to delete this markup?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete this markup.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={deleteMarkup}>Delete</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                      <Textarea
+                        onChange={(e) => setDescription(e.target.value)}
+                        value={description}
+                        placeholder="description"
+                        className="border-gray-500 placeholder:text-gray-500"
+                      />
+                    </div>
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button
+                    disabled={loadingSubmit}
+                    onClick={loadingSubmit ? null : handleEditMarkup}>
+                    Save changes
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          ) : null}
+
+          {permissions?.find((p) => p?.name === 'delete markups') ? (
+            <AlertDialog>
+              <AlertDialogTrigger>
+                <Trash className="cursor-pointer" size={22} />
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure you want to delete this markup?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete this markup.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={deleteMarkup}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : null}
         </div>
       </TableCell>
     </TableRow>

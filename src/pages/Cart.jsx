@@ -16,7 +16,7 @@ import { useEffect } from 'react';
 import axios from 'axios';
 import { useState } from 'react';
 import { ClipLoader } from 'react-spinners';
-import { Edit, Trash } from 'lucide-react';
+import { Edit, Eye, EyeOff, Trash } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,7 +60,7 @@ const Cart = () => {
   const [cartInfos, setCartInfos] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const {permissions} = useContext(PermissionsContext)
+  const { permissions } = useContext(PermissionsContext);
 
   const [endUsers, setEndUsers] = useState(null);
   const [selectedEndUser, setSelectedEndUser] = useState(null);
@@ -169,6 +169,7 @@ const Cart = () => {
 
   const { user } = useAuth();
   const { userInfos } = useContext(UserInfoContext);
+  const [showPrice, setShowPrice] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -630,23 +631,25 @@ const Cart = () => {
                     <TableCell className="flex gap-2 min-w-max">
                       <img
                         src={
-                          item?.line?.product_category?.toLowerCase() === 'flashing' ||
+                          item?.line?.product_category?.toLowerCase() === 'flashings' ||
                           item?.line?.product_category?.toLowerCase() === 'accessories'
-                            ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/trim/${item?.line?.product_brand.toLowerCase()}.webp`
-                            : item?.line?.product_category?.toLowerCase() === 'flats'
-                              ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/flat/${item?.line?.product_brand.toLowerCase()}.webp`
+                            ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/trim/${item?.line?.product_brand?.toLowerCase()}.webp`
+                            : item?.line?.product_category?.toLowerCase() === 'flat stock'
+                              ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/flat/${item?.line?.product_brand?.toLowerCase()}.webp`
                               : item?.line?.product_category?.toLowerCase() === 'screws'
-                                ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/screws/${item?.line?.product_brand.toLowerCase()}.webp`
-                                : item?.line?.product_category?.toLowerCase() === 'sliding doors'
-                                  ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/west/${item?.line?.product_brand.toLowerCase()}.webp`
-                                  : item?.line?.product_category?.toLowerCase() === 'roofing/siding'
+                                ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/screws/${item?.line?.product_brand?.toLowerCase()}.webp`
+                                : item?.line?.product_category?.toLowerCase() ===
+                                    'sliding door hardwar'
+                                  ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/west/${item?.line?.product_brand?.toLowerCase()}.webp`
+                                  : item?.line?.product_category?.toLowerCase() ===
+                                      'panels & profiles'
                                     ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/${item?.line?.product_brand?.toLowerCase()}/panel.webp`
-                                    : item?.line?.product_category?.toLowerCase() === 'decking'
+                                    : item?.line?.product_category?.toLowerCase() === 'steel deck'
                                       ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/${item?.line?.product_brand?.toLowerCase()}/diagram.webp`
-                                      : product
+                                      : productImage
                         }
                         alt="Product Image"
-                        className="border-gris-claire border rounded-lg w-40 aspect-w-1 aspect-h-1"
+                        className="  rounded-lg w-full "
                       />
 
                       <div>
@@ -699,13 +702,33 @@ const Cart = () => {
                             (${Number(item?.line?.unity_price)?.toFixed(4)} per unit)
                           </span>
                         </p>
-                        <p className="text-gray-500">
-                          ${Number(item?.line?.line_full_cost)?.toFixed(4)}
-                          <span className="text-xs italic text-gray-500">
-                            {' '}
-                            (${Number(item?.line?.product_cost)?.toFixed(4)} per unit)
-                          </span>
-                        </p>
+                        {permissions?.find((p) => p?.name === 'display cost') ? (
+                          <div>
+                          {/* Eye Icon Toggle */}
+                          <div
+                            onClick={() => setShowPrice((prev) => !prev)}
+                            className="cursor-pointer inline-flex items-center"
+                          >
+                            {showPrice ? (
+                              <EyeOff size={18} className="text-gray-600 hover:text-gray-800" />
+                            ) : (
+                              <Eye size={18} className="text-gray-600 hover:text-gray-800" />
+                            )}
+                            <span className="ml-2 text-gray-600 text-xs">{showPrice ? 'Hide Cost' : 'Show Cost'}</span>
+                          </div>
+                
+                          {/* Price Display */}
+                          {showPrice && (
+                            <p className="text-gray-500">
+                              ${Number(item?.line?.line_full_cost)?.toFixed(4)}
+                              <span className="text-xs italic text-gray-500">
+                                {' '}
+                                (${Number(item?.line?.product_cost)?.toFixed(4)} per unit)
+                              </span>
+                            </p>
+                          )}
+                        </div>
+                        ) : null}
                       </div>
                     </TableCell>
 
@@ -799,37 +822,42 @@ const Cart = () => {
               </div>*/}
 
               <div className="flex flex-col gap-4 mt-4">
-                {!attachedClient ? (
+                {permissions?.find((p) => p?.name === 'attach enduser to cart') ? (
                   <>
-                    <select
-                      className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:opacity-50"
-                      onChange={(e) => setSelectedEndUser(e.target.value)}
-                      value={selectedEndUser}>
-                      <option value="">Select an client</option>
-                      {endUsers?.map((user) => (
-                        <option key={user?.id} value={user?.id}>
-                          {user?.name}
-                        </option>
-                      ))}
-                    </select>
-                    <Button
-                      disabled={loadingAttach || !selectedEndUser}
-                      onClick={loadingAttach ? null : AttachCart}
-                      className="w-100 rounded-md">
-                      {loadingAttach ? 'Attaching cart' : 'Attach a client'}
-                    </Button>
+                    {!attachedClient ? (
+                      <>
+                        <select
+                          className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:opacity-50"
+                          onChange={(e) => setSelectedEndUser(e.target.value)}
+                          value={selectedEndUser}>
+                          <option value="">Select an client</option>
+                          {endUsers?.map((user) => (
+                            <option key={user?.id} value={user?.id}>
+                              {user?.name}
+                            </option>
+                          ))}
+                        </select>
+                        <Button
+                          disabled={loadingAttach || !selectedEndUser}
+                          onClick={loadingAttach ? null : AttachCart}
+                          className="w-100 rounded-md">
+                          {loadingAttach ? 'Attaching cart' : 'Attach a client'}
+                        </Button>
+                      </>
+                    ) : (
+                      <div>
+                        This cart is attached to {attachedClient?.name},{' '}
+                        <span
+                          onClick={detachClient}
+                          className="text-blue-500 hover:text-blue-500/90 underline cursor-pointer">
+                          Detach this client?
+                        </span>
+                      </div>
+                    )}
                   </>
-                ) : (
-                  <div>
-                    This cart is attached to {attachedClient?.name},{' '}
-                    <span
-                      onClick={detachClient}
-                      className="text-blue-500 hover:text-blue-500/90 underline cursor-pointer">
-                      Detach this client?
-                    </span>
-                  </div>
-                )}
-                {permissions?.find((p) => p?.name === 'create quote') ? (
+                ) : null}
+
+                {permissions?.find((p) => p?.name === 'create quotes') ? (
                   <DialogSmall>
                     <DialogTrigger>
                       <Button
@@ -926,101 +954,105 @@ const Cart = () => {
                   </DialogSmall>
                 ) : null}
 
-                <DialogSmall>
-                  <DialogTrigger>
-                    <Button onClick={getAddresses} className="w-100 rounded-md  text-white  w-full">
-                      Order
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContentSmall>
-                    <DialogHeaderSmall>
-                      <DialogTitleSmall>Please choose an address </DialogTitleSmall>
-                    </DialogHeaderSmall>
-                    {loadingAddresses ? (
-                      <DialogDescriptionSmall>
-                        <div className="h-[300px] flex justify-center items-center">
-                          <ClipLoader
-                            color={'black'}
-                            loading={loadingAddresses}
-                            //cssOverride={override}
-                            size={150}
-                            aria-label="Loading Spinner"
-                            data-testid="loader"
-                          />
-                        </div>
-                      </DialogDescriptionSmall>
-                    ) : (
-                      <DialogDescriptionSmall className="flex flex-col gap-2">
-                        <div className="mb-2 text-black">
-                          <label>
-                            PO Number:{' '}
-                            <span className="text-xs italic text-gray-500">{'(required)'}</span>
-                          </label>
-                          <Input
-                            className="mt-1"
-                            value={poNumber}
-                            onChange={(e) => setPoNumber(e.target.value)}
-                          />
-                        </div>
-                        {addresses?.map((address) => (
-                          <div
-                            onClick={() => setSelectedAddress(address)}
-                            className={`flex justify-between gap-4 text-black border rounded-md px-4 py-3 cursor-pointer ${
-                              JSON.stringify(selectedAddress) === JSON.stringify(address)
-                                ? 'ring-2 ring-blue-500'
-                                : ''
-                            }`}
-                            key={address?.ship_id}>
-                            <div>
-                              <h3 className="font-blod text-xl">{address.label}</h3>
+                {permissions?.find((p) => p?.name === 'create orders') ? (
+                  <DialogSmall>
+                    <DialogTrigger>
+                      <Button
+                        onClick={getAddresses}
+                        className="w-100 rounded-md  text-white  w-full">
+                        Order
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContentSmall>
+                      <DialogHeaderSmall>
+                        <DialogTitleSmall>Please choose an address </DialogTitleSmall>
+                      </DialogHeaderSmall>
+                      {loadingAddresses ? (
+                        <DialogDescriptionSmall>
+                          <div className="h-[300px] flex justify-center items-center">
+                            <ClipLoader
+                              color={'black'}
+                              loading={loadingAddresses}
+                              //cssOverride={override}
+                              size={150}
+                              aria-label="Loading Spinner"
+                              data-testid="loader"
+                            />
+                          </div>
+                        </DialogDescriptionSmall>
+                      ) : (
+                        <DialogDescriptionSmall className="flex flex-col gap-2">
+                          <div className="mb-2 text-black">
+                            <label>
+                              PO Number:{' '}
+                              <span className="text-xs italic text-gray-500">{'(required)'}</span>
+                            </label>
+                            <Input
+                              className="mt-1"
+                              value={poNumber}
+                              onChange={(e) => setPoNumber(e.target.value)}
+                            />
+                          </div>
+                          {addresses?.map((address) => (
+                            <div
+                              onClick={() => setSelectedAddress(address)}
+                              className={`flex justify-between gap-4 text-black border rounded-md px-4 py-3 cursor-pointer ${
+                                JSON.stringify(selectedAddress) === JSON.stringify(address)
+                                  ? 'ring-2 ring-blue-500'
+                                  : ''
+                              }`}
+                              key={address?.ship_id}>
                               <div>
-                                {address?.address +
-                                  ', ' +
-                                  address?.city +
-                                  ', ' +
-                                  address?.zip +
-                                  ' ' +
-                                  address?.state +
-                                  ', ' +
-                                  address?.country}
+                                <h3 className="font-blod text-xl">{address.label}</h3>
+                                <div>
+                                  {address?.address +
+                                    ', ' +
+                                    address?.city +
+                                    ', ' +
+                                    address?.zip +
+                                    ' ' +
+                                    address?.state +
+                                    ', ' +
+                                    address?.country}
+                                </div>
+                              </div>
+                              <div>
+                                <input
+                                  checked={
+                                    JSON.stringify(selectedAddress) === JSON.stringify(address)
+                                  }
+                                  type="radio"
+                                />
                               </div>
                             </div>
+                          ))}
+
+                          <div
+                            onClick={() => setSelectedAddress(null)}
+                            className={`flex justify-between gap-4 text-black border rounded-md px-4 py-3 cursor-pointer ${
+                              !selectedAddress ? 'ring-2 ring-blue-500' : ''
+                            }`}>
                             <div>
-                              <input
-                                checked={
-                                  JSON.stringify(selectedAddress) === JSON.stringify(address)
-                                }
-                                type="radio"
-                              />
+                              <h3 className="font-blod text-xl">Custom address</h3>
+                            </div>
+                            <div>
+                              <input checked={!selectedAddress} type="radio" />
                             </div>
                           </div>
-                        ))}
+                        </DialogDescriptionSmall>
+                      )}
 
-                        <div
-                          onClick={() => setSelectedAddress(null)}
-                          className={`flex justify-between gap-4 text-black border rounded-md px-4 py-3 cursor-pointer ${
-                            !selectedAddress ? 'ring-2 ring-blue-500' : ''
-                          }`}>
-                          <div>
-                            <h3 className="font-blod text-xl">Custom address</h3>
-                          </div>
-                          <div>
-                            <input checked={!selectedAddress} type="radio" />
-                          </div>
-                        </div>
-                      </DialogDescriptionSmall>
-                    )}
-
-                    <DialogFooterSmall>
-                      <Button
-                        disabled={loadingOrder || !poNumber}
-                        onClick={loadingOrder ? null : orderCart}
-                        className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary">
-                        {loadingOrder ? 'Creating order...' : 'Create order'}
-                      </Button>
-                    </DialogFooterSmall>
-                  </DialogContentSmall>
-                </DialogSmall>
+                      <DialogFooterSmall>
+                        <Button
+                          disabled={loadingOrder || !poNumber}
+                          onClick={loadingOrder ? null : orderCart}
+                          className="w-100 rounded-md bg-green-primary text-white hover:bg-green-primary/90 border-green-primary">
+                          {loadingOrder ? 'Creating order...' : 'Create order'}
+                        </Button>
+                      </DialogFooterSmall>
+                    </DialogContentSmall>
+                  </DialogSmall>
+                ) : null}
               </div>
             </div>
           </div>

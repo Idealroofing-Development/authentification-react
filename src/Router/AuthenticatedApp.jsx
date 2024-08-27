@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, Route, Routes } from 'react-router-dom';
+import { Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import List from '../pages/List.jsx';
 import { NotFoundScreen } from '../pages/NotFoundScreen.jsx';
 import FinishedScreen from '../pages/FinishedScreen.jsx';
@@ -44,6 +44,7 @@ import SavedCarts from '@/pages/SavedCarts.jsx';
 import SingleCart from '@/pages/SingleCart.jsx';
 import { useState } from 'react';
 import { PermissionsContext } from '@/context/permissionsContext.jsx';
+import Unauthorized from '@/pages/Unauthorized.jsx';
 
 function AppRoutes() {
   return (
@@ -58,6 +59,7 @@ function AppRoutes() {
       <Route path="/markups" element={<Markups />} />
       <Route path="/clients" element={<Clients />} />
       <Route path="/carts" element={<SavedCarts />} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="*" element={<NotFoundScreen />} />
     </Routes>
   );
@@ -70,6 +72,41 @@ export default function AuthenticatedApp() {
   const { userInfos } = useContext(UserInfoContext);
 
   const { permissions } = useContext(PermissionsContext);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (permissions && location) {
+      if (location.pathname === '/quotes') {
+        const hasPermission = permissions?.find((p) => p?.name === 'get quotes');
+        if (!hasPermission) {
+          navigate('/unauthorized'); // Redirect to unauthorized page
+        }
+      }
+
+      if (location.pathname === '/orders') {
+        const hasPermission = permissions?.find((p) => p?.name === 'get orders');
+        if (!hasPermission) {
+          navigate('/unauthorized'); // Redirect to unauthorized page
+        }
+      }
+
+      if (location.pathname === '/markups') {
+        const hasPermission = permissions?.find((p) => p?.name === 'get markups');
+        if (!hasPermission) {
+          navigate('/unauthorized'); // Redirect to unauthorized page
+        }
+      }
+
+      if (location.pathname === '/carts') {
+        const hasPermission = permissions?.find((p) => p?.name === 'get saved carts');
+        if (!hasPermission) {
+          navigate('/unauthorized'); // Redirect to unauthorized page
+        }
+      }
+    }
+  }, [location, permissions]);
 
   useEffect(() => {
     console.log('permissions', permissions);
@@ -112,12 +149,18 @@ export default function AuthenticatedApp() {
 
         <div className="md:flex justify-between items-center py-2 px-8 bg-gray-100 uppercase text-sm font-semibold hidden ">
           <Link to="/"> Products </Link>
-          <Link to="/quotes"> Quotes </Link>
-          <Link to="/orders"> Orders </Link>
+          {permissions?.find((p) => p?.name === 'get quotes') && <Link to="/quotes"> Quotes </Link>}
+
+          {permissions?.find((p) => p?.name === 'get orders') && <Link to="/orders"> Orders </Link>}
           <Link to="/"> Invoices </Link>
-          <Link to="/carts"> Saved Carts </Link>
+          {permissions?.find((p) => p?.name === 'get saved carts') && (
+            <Link to="/carts"> Saved Carts </Link>
+          )}
           <Link to="/clients"> My Clients </Link>
-          <Link to="/markups"> Markups </Link>
+
+          {permissions?.find((p) => p?.name === 'get markups') && (
+            <Link to="/markups"> Markups </Link>
+          )}
         </div>
 
         <div className="md:hidden bg-green-primary p-4 text-white">

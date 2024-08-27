@@ -721,10 +721,9 @@ const ProductCard2 = ({ product }) => {
   }, [selectedPartNum]);
 
   useEffect(() => {
-    if (product?.parts?.find((p) => p.color	 === 'img:NONE')) {
+    if (product?.parts?.find((p) => p.color === 'img:NONE')) {
       setNoColor(true);
       setSelectedColor(product?.parts?.find((p) => p.color === 'img:NONE')?.color);
-      
     }
   }, [product]);
 
@@ -766,8 +765,8 @@ const ProductCard2 = ({ product }) => {
     }
   }, [bMeasurement]);
   useEffect(() => {
-    console.log("noColor", noColor)
-  }, [noColor])
+    console.log('noColor', noColor);
+  }, [noColor]);
 
   return (
     <div className="flex flex-col justify-center w-full productCard">
@@ -799,7 +798,6 @@ const ProductCard2 = ({ product }) => {
         <div className="w-full  bg-white flex flex-col space-y-2 p-3">
           <Link to="/product/9">
             <h3 className="font-black md:text-2xl text-xl">{product?.product?.title_enc}</h3>
-            
           </Link>
 
           <form onSubmit={loadingAddToCart ? null : getPartNum}>
@@ -892,16 +890,17 @@ const ProductCard2 = ({ product }) => {
                         onChange={(e) => setSelectedSubBrand(e.target.value)}>
                         <option value="">Profile</option>
                         {availableSubBrands.map((subBrand, index) => {
-  // Find the first part that matches the sub_brand and get its desc_enc
-  const descEnc = product?.parts?.find(part => part.sub_brand === subBrand)?.desc_enc;
+                          // Find the first part that matches the sub_brand and get its desc_enc
+                          const descEnc = product?.parts?.find(
+                            (part) => part.sub_brand === subBrand
+                          )?.desc_enc;
 
-  return (
-    <option key={index} value={subBrand}>
-      {descEnc} {/* Display the desc_enc value */}
-    </option>
-  );
-})}
-
+                          return (
+                            <option key={index} value={subBrand}>
+                              {descEnc} {/* Display the desc_enc value */}
+                            </option>
+                          );
+                        })}
                       </select>
                     </label>
                   )}
@@ -930,7 +929,7 @@ const ProductCard2 = ({ product }) => {
                       <div className="absolute w-[50px] h-[3px] bg-red-500 rotate-45  top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 " />
                     </div>
                   )}
-                  {product?.parts[0]?.color && !noColor ?(
+                  {product?.parts[0]?.color && !noColor ? (
                     <Popover>
                       <TooltipProvider>
                         <Tooltip>
