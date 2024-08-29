@@ -11,6 +11,9 @@
     "start": "serve -s _static -l tcp://0.0.0.0:$PORT -n",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0"
   },
+    "engines": {
+    "node":">=16"
+  },  
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.11.4",
