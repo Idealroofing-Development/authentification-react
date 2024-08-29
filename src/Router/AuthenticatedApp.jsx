@@ -134,6 +134,12 @@ export default function AuthenticatedApp() {
                   <AvatarFallback>ZZ</AvatarFallback>
                 </Avatar>
                 <DropdownMenuContent>
+                  {permissions?.find((p) => p?.name === 'get markups') && (
+                    <Link to="/markups">
+                      {' '}
+                      <DropdownMenuLabel>Markups </DropdownMenuLabel>
+                    </Link>
+                  )}
                   <Link to="/">
                     <DropdownMenuLabel>Preferences</DropdownMenuLabel>
                   </Link>
@@ -158,9 +164,7 @@ export default function AuthenticatedApp() {
           )}
           <Link to="/clients"> My Clients </Link>
 
-          {permissions?.find((p) => p?.name === 'get markups') && (
-            <Link to="/markups"> Markups </Link>
-          )}
+          
         </div>
 
         <div className="md:hidden bg-green-primary p-4 text-white">

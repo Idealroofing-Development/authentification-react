@@ -113,7 +113,7 @@ const Markups = () => {
           }
         })
         .then((res) => {
-          setEndUsers(res.data);
+          setEndUsers(res.data.data);
         })
         .catch(() => {
           toast.error('Error getting End Users');

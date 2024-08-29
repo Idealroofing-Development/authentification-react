@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import { useAuth } from '@/context/auth-context';
 import { useContext } from 'react';
 import { UserInfoContext } from '@/context/userInfosContext';
+import { Select } from '../ui/select';
 
 const ProductCard2 = ({ product }) => {
   const [uniqueGauges, setUniqueGauges] = useState([]);
@@ -47,6 +48,11 @@ const ProductCard2 = ({ product }) => {
   const [lengthMM, setLengthMM] = useState('');
 
   const [bMeasurement, setBMeasurement] = useState(0);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
+  useEffect(() => {
+    setPopoverOpen(false)
+  }, [selectedColor])
 
   const { user } = useAuth();
 
@@ -743,8 +749,8 @@ const ProductCard2 = ({ product }) => {
 
   useEffect(() => {
     if (
-      (product?.product?.options_list?.V && product?.product?.options_list?.B) ||
-      product?.product?.options_list?.A
+      product?.product?.options_list?.V &&
+      (product?.product?.options_list?.B || product?.product?.options_list?.A)
     ) {
       let row = 0;
       if (bMeasurement < 5.875 && bMeasurement >= 2.75) row = 1;
@@ -893,7 +899,7 @@ const ProductCard2 = ({ product }) => {
                           // Find the first part that matches the sub_brand and get its desc_enc
                           const descEnc = product?.parts?.find(
                             (part) => part.sub_brand === subBrand
-                          )?.desc_enc;
+                          )?.sub_brand_desc_enc;
 
                           return (
                             <option key={index} value={subBrand}>
@@ -930,7 +936,7 @@ const ProductCard2 = ({ product }) => {
                     </div>
                   )}
                   {product?.parts[0]?.color && !noColor ? (
-                    <Popover>
+                    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild className="w-[60px]">
@@ -1084,8 +1090,16 @@ const ProductCard2 = ({ product }) => {
                       <input
                         required
                         value={quantity}
-                        onChange={(e) => setQuantity(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (/^\d{0,7}$/.test(value)) {
+                            setQuantity(value);
+                          }
+                        }}
                         className="border rounded-md px-1 text-sm py-1 w-full"
+                        type="text" // Use text to allow controlling the input
+                        inputMode="numeric" // Brings up the numeric keyboard on mobile devices
+                        maxLength={7} // Ensures that no more than 7 digits can be entered
                       />
                       <br />
                     </div>
@@ -1095,10 +1109,17 @@ const ProductCard2 = ({ product }) => {
                       <span className="w-[100px]">A:</span>
                       <input
                         required
-                        step="0.01"
                         value={a}
-                        onChange={(e) => setA(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (/^\d{0,2}(\.\d{0,3})?$/.test(value)) {
+                            setA(value);
+                          }
+                        }}
                         className="border rounded-md px-1 text-sm py-1 w-full"
+                        type="text" // Use text to control the input more precisely
+                        inputMode="decimal" // Brings up the decimal keyboard on mobile devices
+                        placeholder="00.000" // Optional: to give users a hint about the format
                       />
                     </div>
                   )}
@@ -1107,10 +1128,17 @@ const ProductCard2 = ({ product }) => {
                       <span className="w-[100px]">B:</span>
                       <input
                         required
-                        step="0.01"
                         value={b}
-                        onChange={(e) => setB(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (/^\d{0,2}(\.\d{0,3})?$/.test(value)) {
+                            setB(value);
+                          }
+                        }}
                         className="border rounded-md px-1 text-sm py-1 w-full"
+                        type="text" // Use text to control the input more precisely
+                        inputMode="decimal" // Brings up the decimal keyboard on mobile devices
+                        placeholder="00.000" // Optional: to give users a hint about the format
                       />
                     </div>
                   )}
@@ -1119,35 +1147,68 @@ const ProductCard2 = ({ product }) => {
                       <span className="w-[100px]">C:</span>
                       <input
                         required
-                        step="0.01"
                         value={c}
-                        onChange={(e) => setC(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (/^\d{0,2}(\.\d{0,3})?$/.test(value)) {
+                            setC(value);
+                          }
+                        }}
                         className="border rounded-md px-1 text-sm py-1 w-full"
+                        type="text" // Use text to control the input more precisely
+                        inputMode="decimal" // Brings up the decimal keyboard on mobile devices
+                        placeholder="00.000" // Optional: to give users a hint about the format
                       />
                     </div>
                   )}
                   {product?.product?.options_list?.P1 && (
                     <div className="flex gap-1 items-center">
                       <span className="w-[100px]">Pitch/Angle 1:</span>
-                      <input
-                        required
-                        step="0.01"
-                        value={p1}
-                        onChange={(e) => setP1(e.target.value)}
-                        className="border rounded-md px-1 text-sm py-1 w-full"
-                      />
+                      <div className="flex gap-0 items-center">
+                        <input
+                          required
+                          value={p1}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^\d{0,6}$/.test(value)) {
+                              setP1(value);
+                            }
+                          }}
+                          className="border rounded-md px-1 text-sm py-1 w-full"
+                          type="text" // Use text to allow controlling the input
+                          inputMode="numeric" // Brings up the numeric keyboard on mobile devices
+                          maxLength={7} // Ensures that no more than 7 digits can be entered
+                        />
+                        <select className="border rounded-md rounded-l-none px-1 text-sm py-1 h-full">
+                          <option>Deg</option>
+                          <option>/12</option>
+                        </select>
+                      </div>
                     </div>
                   )}
                   {product?.product?.options_list?.P2 && (
                     <div className="flex gap-1 items-center">
                       <span className="w-[100px]">Pitch/Angle 2:</span>
-                      <input
-                        required
-                        step="0.01"
-                        value={p2}
-                        onChange={(e) => setP2(e.target.value)}
-                        className="border rounded-md px-1 text-sm py-1 w-full"
-                      />
+                      <div className="flex gap-0 items-center">
+                        <input
+                          required
+                          value={p2}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^\d{0,6}$/.test(value)) {
+                              setP2(value);
+                            }
+                          }}
+                          className="border rounded-md px-1 text-sm py-1 w-full"
+                          type="text" // Use text to allow controlling the input
+                          inputMode="numeric" // Brings up the numeric keyboard on mobile devices
+                          maxLength={7} // Ensures that no more than 7 digits can be entered
+                        />
+                        <select className="border rounded-md rounded-l-none px-1 text-sm py-1 h-full">
+                          <option>Deg</option>
+                          <option>/12</option>
+                        </select>
+                      </div>
                     </div>
                   )}
 

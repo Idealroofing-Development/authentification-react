@@ -16,7 +16,7 @@ import { useEffect } from 'react';
 import axios from 'axios';
 import { useState } from 'react';
 import { ClipLoader } from 'react-spinners';
-import { Edit, Eye, EyeOff, Trash } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit, Eye, EyeOff, Trash } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,6 +54,7 @@ import { useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { UserInfoContext } from '@/context/userInfosContext';
 import { PermissionsContext } from '@/context/permissionsContext';
+import ReactPaginate from 'react-paginate';
 
 const Cart = () => {
   const [cart, setCart] = useState(null);
@@ -170,10 +171,11 @@ const Cart = () => {
   const { user } = useAuth();
   const { userInfos } = useContext(UserInfoContext);
   const [showPrice, setShowPrice] = useState(false);
+  const [clientResults, setClientResults] = useState(null);
 
   useEffect(() => {
     if (user) {
-      console.log('token', user);
+      //console.log('token', user);
     }
   }, [user]);
 
@@ -418,24 +420,40 @@ const Cart = () => {
     }
   };
 
-  useEffect(() => {
-    const getEndUsers = async () => {
-      await axios
-        .get(`${import.meta.env.VITE_REACT_API_URL}/endusers`, {
-          headers: {
-            Authorization: `Bearer ${user}`
-          }
-        })
-        .then((res) => {
-          setEndUsers(res.data);
-        })
-        .catch(() => {
-          toast.error('Error getting End Users');
-        });
-    };
+  const [loadingClients, setLoadingClients] = useState(false);
+  const [clientsPage, setClientsPage] = useState(1);
 
-    getEndUsers();
-  }, []);
+  const getEndUsers = async () => {
+    setEndUsers(null);
+    setLoadingClients(true);
+    await axios
+      .get(`${import.meta.env.VITE_REACT_API_URL}/endusers`, {
+        params: {
+          page: clientsPage
+        },
+        headers: {
+          Authorization: `Bearer ${user}`
+        }
+      })
+      .then((res) => {
+        setLoadingClients(false);
+        setEndUsers(res.data.data);
+        setClientResults(res.data);
+      })
+      .catch(() => {
+        setLoadingClients(false);
+        toast.error('Error getting End Users');
+      });
+  };
+
+  useEffect(() => {
+    if (clientsPage && clientsPage > 1) getEndUsers();
+    console.log(clientsPage);
+  }, [clientsPage]);
+
+  const handlePageClick = (event) => {
+    setClientsPage(event.selected + 1);
+  };
 
   const deleteLine = async (id) => {
     //setCart((prevCart) => prevCart.filter((item) => item.id !== id));
@@ -499,7 +517,7 @@ const Cart = () => {
   function parseProductVariables(input) {
     if (!input) return {};
 
-    console.log(input);
+    //console.log(input);
 
     const allowedProperties = ['A', 'B', 'C', 'P1', 'P2', 'X', 'Y'];
     const result = {};
@@ -629,29 +647,30 @@ const Cart = () => {
                 {cart?.map((item, index) => (
                   <TableRow key={index}>
                     <TableCell className="flex gap-2 min-w-max">
-                      <img
-                        src={
-                          item?.line?.product_category?.toLowerCase() === 'flashings' ||
-                          item?.line?.product_category?.toLowerCase() === 'accessories'
-                            ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/trim/${item?.line?.product_brand?.toLowerCase()}.webp`
-                            : item?.line?.product_category?.toLowerCase() === 'flat stock'
-                              ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/flat/${item?.line?.product_brand?.toLowerCase()}.webp`
-                              : item?.line?.product_category?.toLowerCase() === 'screws'
-                                ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/screws/${item?.line?.product_brand?.toLowerCase()}.webp`
-                                : item?.line?.product_category?.toLowerCase() ===
-                                    'sliding door hardwar'
-                                  ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/west/${item?.line?.product_brand?.toLowerCase()}.webp`
+                      <div className="w-[130px] h-[130px] border-gris-claire border rounded-lg flex items-center justify-center overflow-hidden">
+                        <img
+                          src={
+                            item?.line?.product_category?.toLowerCase() === 'flashings' ||
+                            item?.line?.product_category?.toLowerCase() === 'accessories'
+                              ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/trim/${item?.line?.product_brand?.toLowerCase()}.webp`
+                              : item?.line?.product_category?.toLowerCase() === 'flat stock'
+                                ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/flat/${item?.line?.product_brand?.toLowerCase()}.webp`
+                                : item?.line?.product_category?.toLowerCase() === 'screws'
+                                  ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/screws/${item?.line?.product_brand?.toLowerCase()}.webp`
                                   : item?.line?.product_category?.toLowerCase() ===
-                                      'panels & profiles'
-                                    ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/${item?.line?.product_brand?.toLowerCase()}/panel.webp`
-                                    : item?.line?.product_category?.toLowerCase() === 'steel deck'
-                                      ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/${item?.line?.product_brand?.toLowerCase()}/diagram.webp`
-                                      : productImage
-                        }
-                        alt="Product Image"
-                        className="  rounded-lg w-full "
-                      />
-
+                                      'sliding door hardwar'
+                                    ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/west/${item?.line?.product_brand?.toLowerCase()}.webp`
+                                    : item?.line?.product_category?.toLowerCase() ===
+                                        'panels & profiles'
+                                      ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/${item?.line?.product_brand?.toLowerCase()}/panel.webp`
+                                      : item?.line?.product_category?.toLowerCase() === 'steel deck'
+                                        ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/${item?.line?.product_brand?.toLowerCase()}/diagram.webp`
+                                        : productImage
+                          }
+                          alt="Product Image"
+                          className="  rounded-lg w-full "
+                        />
+                      </div>
                       <div>
                         <h3 className="font-bold mb-2">{item?.line?.product_name}</h3>
                         <div className="text-gris-claire text-lg">
@@ -696,38 +715,39 @@ const Cart = () => {
                     <TableCell className="text-right">
                       <div className="text-base">
                         <p>
-                          ${Number(item?.line?.line_full_price)?.toFixed(4)}
+                          ${Number(item?.line?.line_full_price)?.toFixed(5)}
                           <span className="text-xs italic text-gray-700">
                             {' '}
-                            (${Number(item?.line?.unity_price)?.toFixed(4)} per unit)
+                            (${Number(item?.line?.unity_price)?.toFixed(5)} per unit)
                           </span>
                         </p>
                         {permissions?.find((p) => p?.name === 'display cost') ? (
                           <div>
-                          {/* Eye Icon Toggle */}
-                          <div
-                            onClick={() => setShowPrice((prev) => !prev)}
-                            className="cursor-pointer inline-flex items-center"
-                          >
-                            {showPrice ? (
-                              <EyeOff size={18} className="text-gray-600 hover:text-gray-800" />
-                            ) : (
-                              <Eye size={18} className="text-gray-600 hover:text-gray-800" />
-                            )}
-                            <span className="ml-2 text-gray-600 text-xs">{showPrice ? 'Hide Cost' : 'Show Cost'}</span>
-                          </div>
-                
-                          {/* Price Display */}
-                          {showPrice && (
-                            <p className="text-gray-500">
-                              ${Number(item?.line?.line_full_cost)?.toFixed(4)}
-                              <span className="text-xs italic text-gray-500">
-                                {' '}
-                                (${Number(item?.line?.product_cost)?.toFixed(4)} per unit)
+                            {/* Eye Icon Toggle */}
+                            <div
+                              onClick={() => setShowPrice((prev) => !prev)}
+                              className="cursor-pointer inline-flex items-center">
+                              {showPrice ? (
+                                <EyeOff size={18} className="text-gray-600 hover:text-gray-800" />
+                              ) : (
+                                <Eye size={18} className="text-gray-600 hover:text-gray-800" />
+                              )}
+                              <span className="ml-2 text-gray-600 text-xs">
+                                {showPrice ? 'Hide Cost' : 'Show Cost'}
                               </span>
-                            </p>
-                          )}
-                        </div>
+                            </div>
+
+                            {/* Price Display */}
+                            {showPrice && (
+                              <p className="text-gray-500">
+                                ${Number(item?.line?.line_full_cost)?.toFixed(5)}
+                                <span className="text-xs italic text-gray-500">
+                                  {' '}
+                                  (${Number(item?.line?.product_cost)?.toFixed(5)} per unit)
+                                </span>
+                              </p>
+                            )}
+                          </div>
                         ) : null}
                       </div>
                     </TableCell>
@@ -789,12 +809,12 @@ const Cart = () => {
               <div className="border-b-2 border-black flex flex-col gap-8 pb-8">
                 <div className="flex justify-between items-center">
                   <p>Misc Charges : </p>
-                  <p>${Number(miscCharges)?.toFixed(2)}</p>
+                  <p>${Number(miscCharges)?.toFixed(3)}</p>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <p>Lines Total : </p>
-                  <p>${Number(linesTotal)?.toFixed(2)}</p>
+                  <p>${Number(linesTotal)?.toFixed(3)}</p>
                 </div>
 
                 {/*<div className="flex justify-between items-center">
@@ -806,7 +826,7 @@ const Cart = () => {
               <div className="border-b-2 border-black flex flex-col gap-8 py-8">
                 <div className="flex justify-between items-center">
                   <p className="font-bold">Subtotal : </p>
-                  <p>${Number(subTotal)?.toFixed(2)}</p>
+                  <p>${Number(subTotal)?.toFixed(3)}</p>
                 </div>
 
                 <div className="flex justify-end items-center">
@@ -822,27 +842,108 @@ const Cart = () => {
               </div>*/}
 
               <div className="flex flex-col gap-4 mt-4">
-                {permissions?.find((p) => p?.name === 'attach enduser to cart') ? (
+                {permissions?.find((p) => p?.name === 'attach end user to cart') ? (
                   <>
                     {!attachedClient ? (
                       <>
-                        <select
-                          className="bg-white border border-gray-300 rounded-md py-1 px-2 w-full disabled:opacity-50"
-                          onChange={(e) => setSelectedEndUser(e.target.value)}
-                          value={selectedEndUser}>
-                          <option value="">Select an client</option>
-                          {endUsers?.map((user) => (
-                            <option key={user?.id} value={user?.id}>
-                              {user?.name}
-                            </option>
-                          ))}
-                        </select>
-                        <Button
-                          disabled={loadingAttach || !selectedEndUser}
-                          onClick={loadingAttach ? null : AttachCart}
-                          className="w-100 rounded-md">
-                          {loadingAttach ? 'Attaching cart' : 'Attach a client'}
-                        </Button>
+                        <div>
+                          This cart is not attached to any client,{' '}
+                          <Dialog>
+                            <DialogTrigger>
+                              <span
+                                onClick={() => {
+                                  setClientsPage(1);
+                                  getEndUsers();
+                                  setSelectedEndUser(null)
+                                }}
+                                className="text-blue-500 hover:text-blue-500/90 underline cursor-pointer">
+                                Attach To a client?
+                              </span>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Attach cart to a client</DialogTitle>
+                                <DialogDescription>
+                                  {loadingClients ? (
+                                    <div className="h-full flex items-center justify-center mt-12">
+                                      <ClipLoader
+                                        color={'black'}
+                                        loading={loadingClients}
+                                        //cssOverride={override}
+                                        size={150}
+                                        aria-label="Loading Spinner"
+                                        data-testid="loader"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="mt-4 lg:mt-8">
+                                      <Table className="whitespace-nowrap w-full">
+                                        <TableHeader className="capitalize">
+                                          <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Email</TableHead>
+                                            <TableHead>Company</TableHead>
+                                            <TableHead>Phone</TableHead>
+                                            <TableHead>Comment</TableHead>
+                                          </TableRow>
+                                        </TableHeader>
+
+                                        <TableBody>
+                                          {endUsers?.map((client) => (
+                                            <TableRow
+                                              style={{
+                                                background:
+                                                  selectedEndUser === client?.id ? '#CDEBC5' : ''
+                                              }}
+                                              className="cursor-pointer"
+                                              onClick={() => setSelectedEndUser(client?.id)}
+                                              key={client.id}>
+                                              <TableCell>{client?.name}</TableCell>
+                                              <TableCell>{client?.email}</TableCell>
+                                              <TableCell>{client?.company}</TableCell>
+                                              <TableCell>{client?.phone}</TableCell>
+                                              <TableCell className="max-w-[250px] whitespace-normal">
+                                                {client?.comment}
+                                              </TableCell>
+                                            </TableRow>
+                                          ))}
+                                        </TableBody>
+                                      </Table>
+
+                                      <ReactPaginate
+                                        breakLabel="..."
+                                        previousLabel={<ChevronLeft size={24} />}
+                                        nextLabel={<ChevronRight size={24} />}
+                                        pageClassName={'py-1.5 px-3'}
+                                        onPageChange={handlePageClick}
+                                        pageRangeDisplayed={2}
+                                        pageCount={Math.ceil(
+                                          clientResults?.total / clientResults?.per_page
+                                        )}
+                                        renderOnZeroPageCount={null}
+                                        containerClassName="pagination flex justify-center mt-4 gap-4"
+                                        activeClassName="active bg-green-primary  text-white"
+                                        previousLinkClassName="previous mr-2 flex items-center justify-center px-3 py-1 border border-gray-300 rounded hover:bg-gray-200"
+                                        nextLinkClassName="next ml-2 flex items-center justify-center px-3 py-1 border border-gray-300 rounded hover:bg-gray-200"
+                                        disabledClassName="disabled opacity-50 cursor-not-allowed"
+                                        initialPage={(parseInt(clientsPage) || 1) - 1}
+                                      />
+                                    </div>
+                                  )}
+                                </DialogDescription>
+                              </DialogHeader>
+
+                              <DialogFooter>
+                                <Button
+                                  disabled={loadingAttach || !selectedEndUser}
+                                  onClick={loadingAttach ? null : AttachCart}
+                                  className="w-100 rounded-md mr-4">
+                                  {loadingAttach ? 'Attaching cart' : 'Attach a client'}
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
                       </>
                     ) : (
                       <div>

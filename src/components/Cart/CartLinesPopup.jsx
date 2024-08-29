@@ -24,6 +24,7 @@ import axios from 'axios';
 import { useAuth } from '@/context/auth-context';
 import { toast } from 'react-toastify';
 import { useEffect } from 'react';
+import product from '@/assets/product.webp';
 
 const CartLinesPopup = ({ cart, forQuotes, forOrders }) => {
   const { user } = useAuth();
@@ -178,26 +179,30 @@ const CartLinesPopup = ({ cart, forQuotes, forOrders }) => {
                 )}
 
                 <TableCell className="flex gap-2 min-w-max">
-                  <img
-                    src={
-                      item.product_category?.toLowerCase() === 'flashing' ||
-                      item.product_category?.toLowerCase() === 'accessories'
-                        ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/trim/${item.product_brand.toLowerCase()}.webp`
-                        : item.product_category?.toLowerCase() === 'flats'
-                          ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/flat/${item.product_brand.toLowerCase()}.webp`
-                          : item.product_category?.toLowerCase() === 'screws'
-                            ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/screws/${item.product_brand.toLowerCase()}.webp`
-                            : item.product_category?.toLowerCase() === 'sliding doors'
-                              ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/west/${item.product_brand.toLowerCase()}.webp`
-                              : item.product_category?.toLowerCase() === 'roofing/siding'
-                                ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/${item.product_brand?.toLowerCase()}/panel.webp`
-                                : item.product_category?.toLowerCase() === 'decking'
-                                  ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/${item.product_brand?.toLowerCase()}/diagram.webp`
-                                  : product
-                    }
-                    alt="Product Image"
-                    className="border-gris-claire border rounded-lg w-40 aspect-w-1 aspect-h-1"
-                  />
+                  <div className="w-[130px] h-[130px] border-gris-claire border rounded-lg flex items-center justify-center overflow-hidden">
+                    <img
+                      src={
+                        item?.line?.product_category?.toLowerCase() === 'flashings' ||
+                        item?.line?.product_category?.toLowerCase() === 'accessories'
+                          ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/trim/${item?.line?.product_brand?.toLowerCase()}.webp`
+                          : item?.line?.product_category?.toLowerCase() === 'flat stock'
+                            ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/flat/${item?.line?.product_brand?.toLowerCase()}.webp`
+                            : item?.line?.product_category?.toLowerCase() === 'screws'
+                              ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/screws/${item?.line?.product_brand?.toLowerCase()}.webp`
+                              : item?.line?.product_category?.toLowerCase() ===
+                                  'sliding door hardwar'
+                                ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/west/${item?.line?.product_brand?.toLowerCase()}.webp`
+                                : item?.line?.product_category?.toLowerCase() ===
+                                    'panels & profiles'
+                                  ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/${item?.line?.product_brand?.toLowerCase()}/panel.webp`
+                                  : item?.line?.product_category?.toLowerCase() === 'steel deck'
+                                    ? `${import.meta.env.VITE_REACT_PRODUCT_IMAGES_URL}/${item?.line?.product_brand?.toLowerCase()}/diagram.webp`
+                                    : product
+                      }
+                      alt="Product Image"
+                      className="  rounded-lg w-full "
+                    />
+                  </div>
 
                   <div>
                     <h3 className="font-bold mb-2">{item.product_name}</h3>
@@ -245,17 +250,17 @@ const CartLinesPopup = ({ cart, forQuotes, forOrders }) => {
                 <TableCell className="text-right">
                   <div className=" text-lg">
                     <p>
-                      ${Number(item?.line_full_price)?.toFixed(4)}
+                      ${Number(item?.line_full_price)?.toFixed(5)}
                       <span className="text-xs italic text-gray-700">
                         {' '}
-                        (${Number(item?.unity_price)?.toFixed(4)} per unit)
+                        (${Number(item?.unity_price)?.toFixed(5)} per unit)
                       </span>
                     </p>
-                    <p className='text-gray-500'>
-                      ${Number(item?.line_full_cost)?.toFixed(4)}
+                    <p className="text-gray-500">
+                      ${Number(item?.line_full_cost)?.toFixed(5)}
                       <span className="text-xs italic text-gray-500">
                         {' '}
-                        (${Number(item?.product_cost)?.toFixed(4)} per unit)
+                        (${Number(item?.product_cost)?.toFixed(5)} per unit)
                       </span>
                     </p>
                   </div>

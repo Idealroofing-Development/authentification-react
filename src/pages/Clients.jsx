@@ -13,7 +13,7 @@ import { useState } from 'react';
 import { ClipLoader } from 'react-spinners';
 import { useEffect } from 'react';
 import axios from 'axios';
-import { Edit, PlusIcon, Trash } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit, PlusIcon, Trash } from 'lucide-react';
 import {
   Dialog,
   DialogFooter,
@@ -29,6 +29,8 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/auth-context';
 import { useContext } from 'react';
 import { PermissionsContext } from '@/context/permissionsContext';
+import { useSearchParams } from 'react-router-dom';
+import ReactPaginate from 'react-paginate';
 
 const Clients = () => {
   const [clients, setClients] = useState(null);
@@ -69,18 +71,31 @@ const Clients = () => {
 
   const { permissions } = useContext(PermissionsContext);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [result, setResult] = useState(null)
+
+  const handlePageClick = (event) => {
+    const updatedSearchParams = new URLSearchParams(searchParams);
+    updatedSearchParams.set('page', event.selected + 1);
+    setSearchParams(updatedSearchParams.toString());
+  };
+
   useEffect(() => {
     const getClient = async () => {
       setLoading(true);
       axios
         .get(`${import.meta.env.VITE_REACT_API_URL}/endusers`, {
+          params: {
+            page: searchParams.get('page') || 1
+          },
           headers: {
             Authorization: `Bearer ${user}`
           }
         })
         .then((res) => {
           setLoading(false);
-          setClients(res.data);
+          setClients(res.data.data);
+          setResult(res.data)
         })
         .catch(() => {
           setLoading(false);
@@ -179,7 +194,7 @@ const Clients = () => {
         setLoadingUpdate(false);
 
         // Replace the client with the same ID in the clients array
-        const updatedClients = clients.map((client) =>
+        const updatedClients = clients?.map((client) =>
           client.id === clientToEditInfos.id ? { ...client, ...clientToEditInfos } : client
         );
 
@@ -570,6 +585,23 @@ const Clients = () => {
               ))}
             </TableBody>
           </Table>
+
+          <ReactPaginate
+            breakLabel="..."
+            previousLabel={<ChevronLeft size={24} />}
+            nextLabel={<ChevronRight size={24} />}
+            pageClassName={'py-1.5 px-3'}
+            onPageChange={handlePageClick}
+            pageRangeDisplayed={2}
+            pageCount={Math.ceil(result?.total / result?.per_page)}
+            renderOnZeroPageCount={null}
+            containerClassName="pagination flex justify-center mt-4 gap-4"
+            activeClassName="active bg-green-primary  text-white"
+            previousLinkClassName="previous mr-2 flex items-center justify-center px-3 py-1 border border-gray-300 rounded hover:bg-gray-200"
+            nextLinkClassName="next ml-2 flex items-center justify-center px-3 py-1 border border-gray-300 rounded hover:bg-gray-200"
+            disabledClassName="disabled opacity-50 cursor-not-allowed"
+            initialPage={(parseInt(searchParams.get('page')) || 1) - 1}
+          />
         </div>
       )}
     </div>
